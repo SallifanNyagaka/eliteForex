@@ -1,0 +1,28 @@
+{
+  "name": "elite-forex-fund",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.57.4",
+    "lucide-react": "^0.541.0",
+    "next": "^15.5.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "@types/react": "^19.1.11",
+    "@types/react-dom": "^19.1.7",
+    "eslint": "^9.34.0",
+    "eslint-config-next": "^15.5.0",
+    "typescript": "^5.9.2"
+  }
+}
