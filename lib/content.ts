@@ -31,6 +31,10 @@ const fallbackContent: SiteContent = {
     primaryCta: "Apply Now",
     secondaryCta: "View Performance",
     rating: "4.9/5 Excellent",
+    media: {
+      url: "",
+      alt: "Homepage hero placeholder",
+    },
     highlights: [
       {
         title: "Disciplined",
@@ -197,9 +201,16 @@ export async function getLandingPageContent(): Promise<SiteContent> {
       byKey.set(row.section_key, row.payload);
     }
 
-    const site = (byKey.get("site") ?? fallbackContent.site) as SiteContent["site"];
+    const rawSite = (byKey.get("site") ?? fallbackContent.site) as Partial<SiteContent["site"]>;
+    const site: SiteContent["site"] = {
+      ...fallbackContent.site,
+      ...rawSite,
+      brandName: rawSite.brandName ?? rawSite.siteName ?? fallbackContent.site.brandName,
+      siteName: rawSite.siteName ?? rawSite.brandName ?? fallbackContent.site.brandName,
+      phone: rawSite.phone ?? rawSite.whatsappDisplay ?? fallbackContent.site.phone,
+    };
     const navigation = (byKey.get("navigation") ?? fallbackContent.navigation) as SiteContent["navigation"];
-    const hero = (byKey.get("hero") ?? fallbackContent.hero) as SiteContent["hero"];
+    const hero = (byKey.get("hero") ?? fallbackContent.hero) as Partial<SiteContent["hero"]>;
     const stats = (byKey.get("stats") ?? fallbackContent.stats) as SiteContent["stats"];
     const plans = (byKey.get("plans") ?? fallbackContent.plans) as SiteContent["plans"];
     const performance = (byKey.get("performance") ?? fallbackContent.performance) as SiteContent["performance"];
@@ -208,11 +219,13 @@ export async function getLandingPageContent(): Promise<SiteContent> {
 
     return {
       site,
-      navigation,
       hero: {
+        ...fallbackContent.hero,
         ...hero,
+        media: hero.media ?? fallbackContent.hero.media,
         highlights: resolveHighlightIcons((hero.highlights ?? fallbackContent.hero.highlights) as SiteContent["hero"]["highlights"]),
       },
+      navigation,
       stats,
       plans,
       performance,

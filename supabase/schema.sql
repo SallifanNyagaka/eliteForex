@@ -7,6 +7,7 @@ create table if not exists public.site_content (
 
 create table if not exists public.applications (
   id bigserial primary key,
+  lead_type text not null default 'contact',
   full_name text not null,
   email text not null,
   whatsapp_number text not null,
@@ -14,6 +15,9 @@ create table if not exists public.applications (
   broker text,
   account_size text not null,
   message text not null,
+  package_name text,
+  investment_budget text,
+  source_page text,
   created_at timestamptz not null default now()
 );
 

@@ -35,6 +35,7 @@ export type PerformanceEntry = {
 export type SiteContent = {
   site: {
     brandName: string;
+    siteName?: string;
     tagline: string;
     whatsappNumber: string;
     whatsappDisplay: string;
@@ -53,6 +54,10 @@ export type SiteContent = {
     secondaryCta: string;
     rating: string;
     highlights: HeroHighlight[];
+    media?: {
+      url: string;
+      alt: string;
+    } | null;
   };
   stats: Array<{
     value: string;

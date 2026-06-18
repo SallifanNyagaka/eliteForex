@@ -31,11 +31,15 @@ export async function POST(request: Request) {
   const { error } = await supabase.from("applications").insert({
     full_name: data.fullName,
     email: data.email,
-    whatsapp_number: data.whatsappNumber,
-    country: data.country,
-    broker: data.broker || null,
-    account_size: data.accountSize,
+    whatsapp_number: "whatsappNumber" in data ? data.whatsappNumber : data.phoneNumber,
+    country: "country" in data ? data.country : "N/A",
+    broker: "broker" in data ? data.broker || null : null,
+    account_size: "accountSize" in data ? data.accountSize : data.investmentBudget,
     message: data.message,
+    lead_type: data.leadType,
+    package_name: "packageName" in data ? data.packageName || null : null,
+    investment_budget: "investmentBudget" in data ? data.investmentBudget : null,
+    source_page: data.sourcePage || null,
   });
 
   if (error) {

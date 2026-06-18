@@ -1,57 +1,13 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { ADMIN_SECTIONS } from "@/lib/admin";
+import { requireAdmin } from "@/lib/admin-auth";
 import { z } from "zod";
 
 const updateSchema = z.object({
   sectionKey: z.enum(ADMIN_SECTIONS),
   payload: z.unknown(),
 });
-
-async function requireAdmin(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-
-  if (!token) {
-    return null;
-  }
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    return null;
-  }
-
-  const supabase = createClient(url, anonKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-    global: {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  });
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser(token);
-
-  if (!user) {
-    return null;
-  }
-
-  const { data: admin } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
-
-  if (!admin) {
-    return null;
-  }
-
-  return { supabase, user };
-}
 
 export async function GET(request: Request) {
   const admin = await requireAdmin(request);
