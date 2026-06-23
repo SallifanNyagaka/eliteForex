@@ -26,6 +26,8 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -167,6 +169,13 @@ main {
   color: var(--gold-soft);
 }
 
+.site-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 .primary-button {
   display: inline-flex;
   align-items: center;
@@ -281,6 +290,68 @@ main {
   color: var(--muted);
   font-size: 0.88rem;
   margin-top: 2px;
+}
+
+.mobile-menu {
+  display: none;
+  position: relative;
+}
+
+.mobile-menu-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(17, 17, 19, 0.7);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.mobile-menu-button svg {
+  color: var(--gold-soft);
+}
+
+.mobile-menu-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: min(320px, calc(100vw - 32px));
+  padding: 14px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 9, 10, 0.98);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+  z-index: 30;
+}
+
+.mobile-menu.is-open .mobile-menu-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.mobile-menu-nav {
+  display: grid;
+  gap: 6px;
+}
+
+.mobile-menu-nav a {
+  padding: 12px 14px;
+  border-radius: 16px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.mobile-menu-nav a:hover {
+  background: rgba(240, 201, 111, 0.1);
+}
+
+.mobile-menu-call {
+  width: 100%;
+  justify-content: center;
 }
 
 .hero-actions {
@@ -1231,8 +1302,28 @@ main {
 }
 
 @media (max-width: 1100px) {
+  .site-header {
+    grid-template-columns: 1fr auto;
+  }
+
   .nav {
     display: none;
+  }
+
+  .site-nav {
+    display: none;
+  }
+
+  .site-header-actions {
+    align-self: center;
+  }
+
+  .site-call-pill {
+    display: none;
+  }
+
+  .mobile-menu {
+    display: block;
   }
 
   .hero,
@@ -1252,6 +1343,21 @@ main {
 
   .faq-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hero-points {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .hero-point span {
+    margin-top: 4px;
   }
 
   .hero-visual {
@@ -1275,9 +1381,29 @@ main {
     justify-content: center;
   }
 
+  .site-header-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
   .call-pill {
     width: 100%;
     justify-content: center;
+  }
+
+  .mobile-menu {
+    width: 100%;
+  }
+
+  .mobile-menu-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .mobile-menu-panel {
+    width: 100%;
+    left: 0;
+    right: 0;
   }
 
   .hero {
@@ -1293,6 +1419,10 @@ main {
   .stats-grid,
   .performance-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hero-points {
+    gap: 12px;
   }
 
   .hero-visual {

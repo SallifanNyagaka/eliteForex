@@ -19,6 +19,12 @@ export const metadata: Metadata = {
     "A premium, conversion-focused forex fund landing page built with Next.js and Supabase.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

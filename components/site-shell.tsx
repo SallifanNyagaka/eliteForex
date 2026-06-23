@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Crown, MessageCircle } from "lucide-react";
 import type { ReactNode } from "react";
 import type { SiteChrome } from "@/lib/cms-types";
+import { MobileMenu } from "@/components/mobile-menu";
 
 export function SiteShell({
   chrome,
@@ -38,15 +39,23 @@ export function SiteShell({
           ))}
         </nav>
 
-        <a
-          className="call-pill"
-          href={`https://wa.me/${chrome.whatsappNumber}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <MessageCircle size={16} />
-          <span>{chrome.whatsappDisplay}</span>
-        </a>
+        <div className="site-header-actions">
+          <a
+            className="call-pill site-call-pill"
+            href={`https://wa.me/${chrome.whatsappNumber}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <MessageCircle size={16} />
+            <span>{chrome.whatsappDisplay}</span>
+          </a>
+
+          <MobileMenu
+            navLinks={chrome.navLinks}
+            whatsappNumber={chrome.whatsappNumber}
+            whatsappDisplay={chrome.whatsappDisplay}
+          />
+        </div>
       </header>
 
       <main className="site-main">{children}</main>
