@@ -71,13 +71,24 @@ export default async function Home() {
   return (
     <SiteShell chrome={chrome}>
       <section className="hero" id="home">
-        <div className="hero-copy">
+        <div className="hero-intro">
           <p className="eyebrow">{content.hero.eyebrow}</p>
           <h1>
             <span className="hero-line-one">{heroLineOne}</span>
             <span className="hero-line-two">{heroLineTwo ?? ""}</span>
           </h1>
           <p className="hero-description">{content.hero.description}</p>
+        </div>
+
+        <div className="hero-visual">
+          <PlaceholderMedia
+            asset={content.hero.media}
+            label="Homepage hero image"
+            note={`Updated through the admin panel. Verified Monthly Return ${currentMonth} ${currentYear}.`}
+          />
+        </div>
+
+        <div className="hero-body">
           <div className="hero-points">
             {content.hero.highlights.map((item) => (
               <div key={item.title} className="hero-point">
@@ -110,14 +121,6 @@ export default async function Home() {
             </div>
             <span>{content.hero.rating}</span>
           </div>
-        </div>
-
-        <div className="hero-visual">
-          <PlaceholderMedia
-            asset={content.hero.media}
-            label="Homepage hero image"
-            note={`Updated through the admin panel. Verified Monthly Return ${currentMonth} ${currentYear}.`}
-          />
         </div>
       </section>
 
