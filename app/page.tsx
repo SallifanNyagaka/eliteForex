@@ -64,9 +64,6 @@ function PlanCard({
 export default async function Home() {
   const [chrome, content] = await Promise.all([getChromeContent(), getLandingPageContent()]);
   const [heroLineOne, heroLineTwo] = content.hero.title.split("\n");
-  const now = new Date();
-  const currentMonth = now.toLocaleString("en-US", { month: "short" });
-  const currentYear = now.getFullYear();
 
   return (
     <SiteShell chrome={chrome}>
@@ -81,25 +78,10 @@ export default async function Home() {
         </div>
 
         <div className="hero-visual">
-          <PlaceholderMedia
-            asset={content.hero.media}
-            label="Homepage hero image"
-            note={`Updated through the admin panel. Verified Monthly Return ${currentMonth} ${currentYear}.`}
-          />
+          <PlaceholderMedia asset={content.hero.media} label="Homepage hero image" />
         </div>
 
         <div className="hero-body">
-          <div className="hero-points">
-            {content.hero.highlights.map((item) => (
-              <div key={item.title} className="hero-point">
-                <item.icon size={18} />
-                <div>
-                  <strong>{item.title}</strong>
-                  <span>{item.text}</span>
-                </div>
-              </div>
-            ))}
-          </div>
           <div className="hero-actions">
             <a className="primary-button" href="#apply">
               {content.hero.primaryCta}
