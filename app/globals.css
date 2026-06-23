@@ -1415,18 +1415,30 @@ main {
   }
 
   .hero-points {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     margin: 0;
   }
 
   .hero-point {
-    display: flex;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
     gap: 12px;
     padding: 14px 16px;
     background: rgba(255, 255, 255, 0.03);
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: none;
+  }
+
+  .hero-point > div {
+    min-width: 0;
+  }
+
+  .hero-point strong,
+  .hero-point span {
+    line-height: 1.45;
   }
 
   .hero-point span {
