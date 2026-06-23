@@ -1,9 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Crown, MessageCircle } from "lucide-react";
+import { Crown } from "lucide-react";
 import type { ReactNode } from "react";
 import type { SiteChrome } from "@/lib/cms-types";
 import { MobileMenu } from "@/components/mobile-menu";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 export function SiteShell({
   chrome,
@@ -46,7 +47,7 @@ export function SiteShell({
             target="_blank"
             rel="noreferrer"
           >
-            <MessageCircle size={16} />
+            <WhatsAppIcon size={16} />
             <span>{chrome.whatsappDisplay}</span>
           </a>
 

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, MessageCircle, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { NavLink } from "@/lib/cms-types";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 export function MobileMenu({
   navLinks,
@@ -59,7 +60,7 @@ export function MobileMenu({
           rel="noreferrer"
           onClick={() => setOpen(false)}
         >
-          <MessageCircle size={16} />
+          <WhatsAppIcon size={16} />
           <span className="mobile-menu-call-text">{whatsappDisplay}</span>
         </a>
       </div>
