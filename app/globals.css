@@ -1282,7 +1282,11 @@ main {
 
 @media (max-width: 1100px) {
   .site-header {
-    grid-template-columns: 1fr auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: nowrap;
   }
 
   .nav {
@@ -1295,6 +1299,7 @@ main {
 
   .site-header-actions {
     align-self: center;
+    flex-shrink: 0;
   }
 
   .site-call-pill {
@@ -1359,30 +1364,30 @@ main {
   .site-header {
     width: min(calc(100% - 20px), var(--container));
     padding-top: 10px;
-    display: grid;
-    grid-template-columns: auto 1fr;
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
+    flex-wrap: nowrap;
   }
 
   .site-header-actions {
-    grid-column: 1;
-    justify-self: start;
     width: auto;
-    justify-content: flex-start;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
   }
 
   .brand {
-    grid-column: 2;
-    justify-self: end;
     width: auto;
     margin-left: 0;
-    justify-content: flex-end;
-    text-align: right;
+    justify-content: flex-start;
+    text-align: left;
+    min-width: 0;
   }
 
   .brand div:last-child {
-    text-align: right;
+    text-align: left;
   }
 
   .site-nav {
@@ -1396,12 +1401,33 @@ main {
   .mobile-menu-button {
     width: auto;
     justify-content: center;
+    padding: 12px;
   }
 
   .mobile-menu-panel {
     width: 100%;
     left: 0;
     right: 0;
+  }
+
+  .site-call-pill {
+    padding: 12px;
+  }
+
+  .site-call-pill span {
+    display: none;
+  }
+
+  .mobile-menu-call {
+    width: 100%;
+    justify-content: flex-start;
+    white-space: nowrap;
+  }
+
+  .mobile-menu-call-text {
+    white-space: nowrap;
+    min-width: 0;
+    font-size: 0.92rem;
   }
 
   .hero {

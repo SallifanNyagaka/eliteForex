@@ -41,7 +41,6 @@ export function MobileMenu({
         onClick={() => setOpen((current) => !current)}
       >
         {open ? <X size={18} /> : <Menu size={18} />}
-        <span>{open ? "Close" : "Menu"}</span>
       </button>
 
       <div id="mobile-menu-panel" className="mobile-menu-panel" aria-hidden={!open}>
@@ -61,7 +60,7 @@ export function MobileMenu({
           onClick={() => setOpen(false)}
         >
           <MessageCircle size={16} />
-          <span>{whatsappDisplay}</span>
+          <span className="mobile-menu-call-text">{whatsappDisplay}</span>
         </a>
       </div>
     </div>
