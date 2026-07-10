@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { NavLink } from "@/lib/cms-types";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
@@ -10,12 +11,24 @@ export function MobileMenu({
   navLinks,
   whatsappNumber,
   whatsappDisplay,
+  currentPath,
 }: {
   navLinks: NavLink[];
   whatsappNumber: string;
   whatsappDisplay: string;
+  currentPath?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const activePath = currentPath ?? pathname;
+
+  function isActiveLink(href: string) {
+    if (href === "/") {
+      return activePath === "/";
+    }
+
+    return activePath === href || activePath.startsWith(`${href}/`);
+  }
 
   useEffect(() => {
     if (!open) {
@@ -47,7 +60,13 @@ export function MobileMenu({
       <div id="mobile-menu-panel" className="mobile-menu-panel" aria-hidden={!open}>
         <nav className="mobile-menu-nav" aria-label="Mobile primary">
           {navLinks.map((item) => (
-            <Link key={item.label} href={item.href} onClick={() => setOpen(false)}>
+            <Link
+              key={item.label}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              aria-current={isActiveLink(item.href) ? "page" : undefined}
+              className={isActiveLink(item.href) ? "mobile-nav-link active" : "mobile-nav-link"}
+            >
               {item.label}
             </Link>
           ))}

@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Crown } from "lucide-react";
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import type { SiteChrome } from "@/lib/cms-types";
 import { MobileMenu } from "@/components/mobile-menu";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
@@ -14,6 +17,15 @@ export function SiteShell({
   children: ReactNode;
 }) {
   const year = new Date().getFullYear();
+  const pathname = usePathname();
+
+  function isActiveLink(href: string) {
+    if (href === "/") {
+      return pathname === "/";
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
 
   return (
     <div className="site-shell">
@@ -34,7 +46,7 @@ export function SiteShell({
 
         <nav className="site-nav" aria-label="Primary">
           {chrome.navLinks.map((item) => (
-            <Link key={item.label} href={item.href}>
+            <Link key={item.label} href={item.href} aria-current={isActiveLink(item.href) ? "page" : undefined} className={isActiveLink(item.href) ? "nav-link active" : "nav-link"}>
               {item.label}
             </Link>
           ))}
@@ -55,6 +67,7 @@ export function SiteShell({
             navLinks={chrome.navLinks}
             whatsappNumber={chrome.whatsappNumber}
             whatsappDisplay={chrome.whatsappDisplay}
+            currentPath={pathname}
           />
         </div>
       </header>
@@ -84,7 +97,12 @@ export function SiteShell({
             <h3>Navigate</h3>
             <div className="footer-links">
               {chrome.navLinks.map((item) => (
-                <Link key={item.label} href={item.href}>
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  aria-current={isActiveLink(item.href) ? "page" : undefined}
+                  className={isActiveLink(item.href) ? "nav-link active" : "nav-link"}
+                >
                   {item.label}
                 </Link>
               ))}

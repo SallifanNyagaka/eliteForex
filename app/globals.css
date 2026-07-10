@@ -346,6 +346,11 @@ main {
   background: rgba(240, 201, 111, 0.1);
 }
 
+.mobile-nav-link.active {
+  background: rgba(240, 201, 111, 0.14);
+  border: 1px solid rgba(240, 201, 111, 0.22);
+}
+
 .mobile-menu-call {
   width: 100%;
   justify-content: center;
@@ -1819,6 +1824,21 @@ main {
 .site-nav a:hover,
 .footer-links a:hover {
   color: var(--text);
+}
+
+.nav-link.active,
+.footer-links a.active {
+  color: var(--gold-soft);
+}
+
+.site-nav a.active {
+  background: rgba(240, 201, 111, 0.12);
+  border-radius: 999px;
+}
+
+.footer-links a.active {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .site-main {
