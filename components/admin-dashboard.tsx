@@ -7,6 +7,7 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUp,
+  Menu,
   Loader2,
   LogOut,
   Plus,
@@ -14,6 +15,7 @@ import {
   Save,
   ShieldCheck,
   Trash2,
+  X,
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { AdminSectionKey } from "@/lib/admin";
@@ -189,6 +191,8 @@ const quickJumpTargets = sectionGroups.map((group) => ({
   label: group.title,
   id: group.title.toLowerCase().replace(/\s+/g, "-"),
 }));
+
+const defaultAdminGroup = sectionGroups.find((group) => group.title === "Home Page")?.title ?? sectionGroups[0]?.title ?? "Overview";
 
 const sectionLabels: Record<AdminSectionKey, string> = {
   site: "Brand settings",
@@ -583,67 +587,8 @@ function SectionCard({ sectionKey, title, description, saving, onSave, footer, c
         </button>
       </div>
       {children}
-      <div className="section-card-footer">{footer ?? <QuickLinks />}</div>
+      {footer ? <div className="section-card-footer">{footer}</div> : null}
     </article>
-  );
-}
-
-function QuickLinks() {
-  return (
-    <div className="quick-links">
-      <span>Jump to:</span>
-      {quickJumpTargets.map((target) => (
-        <button
-          key={target.id}
-          className="ghost-button quick-link"
-          type="button"
-          onClick={() => scrollToAdminTarget(target.id)}
-        >
-          {target.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function MiniIndex({ applicationsCount }: { applicationsCount: number }) {
-  return (
-    <aside className="admin-sidebar">
-      <div className="sticky-panel">
-        <p className="eyebrow">Section Index</p>
-        <h3>Quick navigation</h3>
-        <p className="admin-copy">Jump to any page or section without scrolling.</p>
-        <button type="button" className="sidebar-forms-link" onClick={() => scrollToAdminTarget("applications")}>
-          <span>Forms sent</span>
-          <strong>{applicationsCount}</strong>
-        </button>
-        <div className="sidebar-links">
-          {sectionGroups.map((group) => (
-            <div key={group.title} className="sidebar-group">
-              <button
-                type="button"
-                className="sidebar-group-link"
-                onClick={() => scrollToAdminTarget(group.title.toLowerCase().replace(/\s+/g, "-"))}
-              >
-                {group.title}
-              </button>
-              <div className="sidebar-sublinks">
-                {group.sections.map((sectionKey) => (
-                  <button
-                    key={sectionKey}
-                    type="button"
-                    className="sidebar-section-link"
-                    onClick={() => scrollToAdminTarget(`section-${sectionKey}`, "center")}
-                  >
-                    {sectionLabels[sectionKey]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </aside>
   );
 }
 
@@ -829,6 +774,200 @@ function scrollToAdminTarget(id: string, block: ScrollLogicalPosition = "start")
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block });
 }
 
+function buildMailtoHref(email: string) {
+  return `mailto:${email}`;
+}
+
+function buildTelHref(phone: string) {
+  return `tel:${phone.replace(/[^\d+]/g, "")}`;
+}
+
+function OverviewCard({
+  applications,
+  showAllEmails,
+  onToggleAllEmails,
+}: {
+  applications: ApplicationRow[];
+  showAllEmails: boolean;
+  onToggleAllEmails: () => void;
+}) {
+  const latestLead = applications[0];
+
+  return (
+    <article className="admin-card admin-overview-card" id="overview">
+      <div className="admin-card-head">
+        <div>
+          <p className="eyebrow">Overview</p>
+          <h2>Forms submitted</h2>
+          <p className="admin-copy">This is the first thing the admin sees after signing in.</p>
+        </div>
+        <ShieldCheck size={18} />
+      </div>
+
+      <div className="overview-stats">
+        <div className="overview-stat">
+          <span>Total submissions</span>
+          <strong>{applications.length}</strong>
+        </div>
+        <div className="overview-stat">
+          <span>Latest lead</span>
+          <strong>{latestLead ? latestLead.full_name : "None yet"}</strong>
+        </div>
+      </div>
+
+      <div className="application-list overview-list">
+        {applications.length ? (
+          applications.slice(0, 1).map((item) => (
+            <div key={item.id} className="application-item">
+              <div className="application-top">
+                <strong>{item.full_name}</strong>
+                <span>{new Date(item.created_at).toLocaleString()}</span>
+              </div>
+              <a className="application-link" href={buildMailtoHref(item.email)}>
+                {item.email}
+              </a>
+              <a className="application-link" href={buildTelHref(item.whatsapp_number)}>
+                {item.whatsapp_number}
+              </a>
+              <p>{item.country}</p>
+              <p>{item.account_size}</p>
+              {item.broker ? <p>Broker: {item.broker}</p> : null}
+              <p className="application-message">{item.message}</p>
+            </div>
+          ))
+        ) : (
+          <p className="empty-state">No applications yet.</p>
+        )}
+      </div>
+
+      <div className="overview-actions">
+        <button type="button" className="ghost-button" onClick={onToggleAllEmails} disabled={!applications.length}>
+          {showAllEmails ? "Hide all emails" : "View all emails"}
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function EmailListCard({ applications }: { applications: ApplicationRow[] }) {
+  return (
+    <article className="admin-card admin-emails-card" id="all-emails">
+      <div className="admin-card-head">
+        <div>
+          <p className="eyebrow">Email list</p>
+          <h2>All submitted emails</h2>
+          <p className="admin-copy">Click any email to open a new message in your mail app.</p>
+        </div>
+        <ArrowRight size={18} />
+      </div>
+
+      <div className="email-list">
+        {applications.length ? (
+          applications.map((item) => (
+            <div key={item.id} className="email-item">
+              <div>
+                <strong>{item.full_name}</strong>
+                <span>{new Date(item.created_at).toLocaleString()}</span>
+              </div>
+              <a className="application-link" href={buildMailtoHref(item.email)}>
+                {item.email}
+              </a>
+            </div>
+          ))
+        ) : (
+          <p className="empty-state">No emails to show yet.</p>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function SectionSwitcher({
+  sections,
+  activeSectionKey,
+  onSelectSection,
+}: {
+  sections: AdminSectionKey[];
+  activeSectionKey: AdminSectionKey | null;
+  onSelectSection: (sectionKey: AdminSectionKey) => void;
+}) {
+  return (
+    <div className="section-switcher" aria-label="Page sections">
+      {sections.map((sectionKey) => (
+        <button
+          key={sectionKey}
+          type="button"
+          className={`section-switcher-button ${activeSectionKey === sectionKey ? "active" : ""}`}
+          onClick={() => onSelectSection(sectionKey)}
+        >
+          {sectionLabels[sectionKey]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function AdminSidebar({
+  applicationsCount,
+  activeGroup,
+  isOpen,
+  onClose,
+  onViewOverview,
+  onSelectGroup,
+}: {
+  applicationsCount: number;
+  activeGroup: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onViewOverview: () => void;
+  onSelectGroup: (groupTitle: string) => void;
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        className={`admin-sidebar-backdrop ${isOpen ? "open" : ""}`}
+        aria-label="Close admin panel"
+        onClick={onClose}
+      />
+      <aside className={`admin-sidebar ${isOpen ? "open" : ""}`}>
+        <div className="sticky-panel admin-sidebar-panel">
+          <div className="admin-sidebar-head">
+            <div>
+              <p className="eyebrow">Admin Panel</p>
+              <h3>Forms and pages</h3>
+            </div>
+            <button type="button" className="admin-sidebar-close" onClick={onClose} aria-label="Close panel">
+              <X size={18} />
+            </button>
+          </div>
+
+          <button type="button" className="sidebar-forms-link" onClick={onViewOverview}>
+            <span>Forms received</span>
+            <strong>{applicationsCount}</strong>
+          </button>
+
+          <div className="sidebar-links">
+            {sectionGroups.map((group) => (
+              <button
+                key={group.title}
+                type="button"
+                className={`sidebar-group-link ${activeGroup === group.title ? "active" : ""}`}
+                onClick={() => onSelectGroup(group.title)}
+              >
+                <span>{group.title}</span>
+                <small>{group.sections.length} sections</small>
+              </button>
+            ))}
+          </div>
+
+          <p className="sidebar-hint">Choose a page to edit it in the main panel.</p>
+        </div>
+      </aside>
+    </>
+  );
+}
+
 export function AdminDashboard({
   supabaseUrl,
   supabaseAnonKey,
@@ -844,6 +983,15 @@ export function AdminDashboard({
   const [content, setContent] = useState<ContentRow[]>([]);
   const [applications, setApplications] = useState<ApplicationRow[]>([]);
   const [drafts, setDrafts] = useState<DraftState>({});
+  const [activeGroup, setActiveGroup] = useState(defaultAdminGroup);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [activeSectionKey, setActiveSectionKey] = useState<AdminSectionKey | null>(null);
+  const [showAllEmails, setShowAllEmails] = useState(false);
+  const activeGroupConfig = useMemo(() => sectionGroups.find((group) => group.title === activeGroup) ?? null, [activeGroup]);
+  const sortedApplications = useMemo(
+    () => [...applications].sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime()),
+    [applications]
+  );
 
   async function loadData() {
     setLoading(true);
@@ -890,6 +1038,21 @@ export function AdminDashboard({
     void loadData();
   }, []);
 
+  useEffect(() => {
+    if (!sectionGroups.some((group) => group.title === activeGroup)) {
+      setActiveGroup(defaultAdminGroup);
+    }
+  }, [activeGroup]);
+
+  useEffect(() => {
+    if (!activeGroupConfig) {
+      setActiveSectionKey(null);
+      return;
+    }
+
+    setActiveSectionKey((current) => (current && activeGroupConfig.sections.includes(current) ? current : activeGroupConfig.sections[0] ?? null));
+  }, [activeGroupConfig]);
+
   function updateSection<T>(sectionKey: AdminSectionKey, updater: (current: T) => T) {
     setDrafts((current) => {
       const nextValue = updater((current[sectionKey] ?? {}) as T);
@@ -897,6 +1060,30 @@ export function AdminDashboard({
         ...current,
         [sectionKey]: nextValue,
       };
+    });
+  }
+
+  function selectGroup(groupTitle: string) {
+    setActiveGroup(groupTitle);
+    const nextGroup = sectionGroups.find((group) => group.title === groupTitle);
+    setActiveSectionKey(nextGroup?.sections[0] ?? null);
+    setPanelOpen(false);
+  }
+
+  function viewOverview() {
+    setPanelOpen(false);
+    window.setTimeout(() => scrollToAdminTarget("overview"), 0);
+  }
+
+  function toggleAllEmails() {
+    setShowAllEmails((current) => {
+      const next = !current;
+
+      if (next) {
+        window.setTimeout(() => scrollToAdminTarget("all-emails"), 0);
+      }
+
+      return next;
     });
   }
 
@@ -2251,14 +2438,18 @@ export function AdminDashboard({
   return (
     <main className="admin-shell">
       <header className="admin-header">
-        <div>
+        <div className="admin-header-copy">
           <p className="eyebrow">Supabase CMS</p>
           <h1>Content control center</h1>
           <p className="admin-copy">
-            Edit the database-driven sections, upload page images, and keep the public site aligned without raw JSON.
+            Edit the database-driven sections from the panel, keep the overview focused on submissions, and avoid the long scroll.
           </p>
         </div>
         <div className="admin-actions">
+          <button className="secondary-button admin-menu-button" type="button" onClick={() => setPanelOpen(true)}>
+            <Menu size={16} />
+            Menu
+          </button>
           <button className="secondary-button" type="button" onClick={() => void loadData()}>
             <RefreshCcw size={16} />
             Refresh
@@ -2273,62 +2464,58 @@ export function AdminDashboard({
       {error ? <p className="admin-error">{error}</p> : null}
 
       <section className="admin-grid">
-        <MiniIndex applicationsCount={applications.length} />
+        <AdminSidebar
+          applicationsCount={sortedApplications.length}
+          activeGroup={activeGroup}
+          isOpen={panelOpen}
+          onClose={() => setPanelOpen(false)}
+          onViewOverview={viewOverview}
+          onSelectGroup={selectGroup}
+        />
 
-        <article className="admin-card admin-content-column">
-          <div className="admin-card-head">
-            <div>
-              <p className="eyebrow">Editable Content</p>
-              <h2>Structured CMS sections</h2>
-            </div>
-            <ShieldCheck size={18} />
-          </div>
+        <div className="admin-main-column">
+          <OverviewCard applications={sortedApplications} showAllEmails={showAllEmails} onToggleAllEmails={toggleAllEmails} />
 
-          <QuickLinks />
+          {showAllEmails ? <EmailListCard applications={sortedApplications} /> : null}
 
-          <div className="content-editor-list">
-            {sectionGroups.map((group) => (
-              <div key={group.title} className="content-group" id={group.title.toLowerCase().replace(/\s+/g, "-")}>
-                <SectionDivider title={group.title} />
-                {group.sections.map((sectionKey) => (
-                  <div key={sectionKey} className="content-editor" id={`section-${sectionKey}`}>
-                    {renderSection(sectionKey)}
-                  </div>
-                ))}
+          {activeGroupConfig ? (
+            <article className="admin-card admin-content-column">
+              <div className="admin-card-head">
+                <div>
+                  <p className="eyebrow">Editing</p>
+                  <h2>{activeGroupConfig.title}</h2>
+                  <p className="admin-copy">Use the side panel to switch pages without scrolling through every section.</p>
+                </div>
+                <ShieldCheck size={18} />
               </div>
-            ))}
-          </div>
 
-          <div className="admin-card admin-applications-card" id="applications">
-            <div className="admin-card-head">
-              <div>
-                <p className="eyebrow">Forms sent</p>
-                <h2>Recent leads</h2>
-              </div>
-              <ArrowRight size={18} />
-            </div>
-            <div className="application-list">
-              {applications.length ? (
-                applications.map((item) => (
-                  <div key={item.id} className="application-item">
-                    <div className="application-top">
-                      <strong>{item.full_name}</strong>
-                      <span>{new Date(item.created_at).toLocaleString()}</span>
-                    </div>
-                    <p>{item.email}</p>
-                    <p>{item.whatsapp_number}</p>
-                    <p>{item.country}</p>
-                    <p>{item.account_size}</p>
-                    {item.broker ? <p>Broker: {item.broker}</p> : null}
-                    <p className="application-message">{item.message}</p>
-                  </div>
-                ))
+              <SectionSwitcher
+                sections={activeGroupConfig.sections}
+                activeSectionKey={activeSectionKey}
+                onSelectSection={setActiveSectionKey}
+              />
+
+              {activeSectionKey ? (
+                <div className="content-editor" id={`section-${activeSectionKey}`}>
+                  {renderSection(activeSectionKey)}
+                </div>
               ) : (
-                <p className="empty-state">No applications yet.</p>
+                <p className="empty-state">Select a section to start editing.</p>
               )}
-            </div>
-          </div>
-        </article>
+            </article>
+          ) : (
+            <article className="admin-card admin-content-column">
+              <div className="admin-card-head">
+                <div>
+                  <p className="eyebrow">Overview</p>
+                  <h2>Choose a page to edit</h2>
+                </div>
+                <ShieldCheck size={18} />
+              </div>
+              <p className="admin-copy">Open the side panel and pick a page to load its editors here.</p>
+            </article>
+          )}
+        </div>
       </section>
     </main>
   );
