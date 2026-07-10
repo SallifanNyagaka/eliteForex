@@ -889,7 +889,7 @@ main {
 
 .admin-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.75fr);
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -902,11 +902,8 @@ main {
   min-width: 0;
 }
 
-.admin-side-column {
-  display: grid;
-  gap: 18px;
-  position: sticky;
-  top: 24px;
+.admin-sidebar {
+  min-width: 0;
 }
 
 .admin-card-head {
@@ -997,6 +994,10 @@ main {
   padding-top: 4px;
 }
 
+.admin-applications-card {
+  margin-top: 18px;
+}
+
 .sticky-panel {
   position: sticky;
   top: 24px;
@@ -1057,6 +1058,30 @@ main {
 .sidebar-group-link:hover,
 .sidebar-section-link:hover {
   color: var(--gold);
+}
+
+.sidebar-forms-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(240, 201, 111, 0.2);
+  background: rgba(240, 201, 111, 0.08);
+  color: var(--text);
+  text-align: left;
+}
+
+.sidebar-forms-link span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.sidebar-forms-link strong {
+  color: var(--gold);
+  font-size: 1.1rem;
 }
 
 .section-divider {

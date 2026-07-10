@@ -597,7 +597,7 @@ function QuickLinks() {
           key={target.id}
           className="ghost-button quick-link"
           type="button"
-          onClick={() => document.getElementById(target.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          onClick={() => scrollToAdminTarget(target.id)}
         >
           {target.label}
         </button>
@@ -606,20 +606,24 @@ function QuickLinks() {
   );
 }
 
-function MiniIndex() {
+function MiniIndex({ applicationsCount }: { applicationsCount: number }) {
   return (
     <aside className="admin-sidebar">
       <div className="sticky-panel">
         <p className="eyebrow">Section Index</p>
         <h3>Quick navigation</h3>
         <p className="admin-copy">Jump to any page or section without scrolling.</p>
+        <button type="button" className="sidebar-forms-link" onClick={() => scrollToAdminTarget("applications")}>
+          <span>Forms sent</span>
+          <strong>{applicationsCount}</strong>
+        </button>
         <div className="sidebar-links">
           {sectionGroups.map((group) => (
             <div key={group.title} className="sidebar-group">
               <button
                 type="button"
                 className="sidebar-group-link"
-                onClick={() => document.getElementById(group.title.toLowerCase().replace(/\s+/g, "-"))?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                onClick={() => scrollToAdminTarget(group.title.toLowerCase().replace(/\s+/g, "-"))}
               >
                 {group.title}
               </button>
@@ -629,7 +633,7 @@ function MiniIndex() {
                     key={sectionKey}
                     type="button"
                     className="sidebar-section-link"
-                    onClick={() => document.getElementById(`section-${sectionKey}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                    onClick={() => scrollToAdminTarget(`section-${sectionKey}`, "center")}
                   >
                     {sectionLabels[sectionKey]}
                   </button>
@@ -819,6 +823,10 @@ function RepeatControls({
 
 function SectionDivider({ title }: { title: string }) {
   return <h3 className="section-divider">{title}</h3>;
+}
+
+function scrollToAdminTarget(id: string, block: ScrollLogicalPosition = "start") {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block });
 }
 
 export function AdminDashboard({
@@ -2265,6 +2273,8 @@ export function AdminDashboard({
       {error ? <p className="admin-error">{error}</p> : null}
 
       <section className="admin-grid">
+        <MiniIndex applicationsCount={applications.length} />
+
         <article className="admin-card admin-content-column">
           <div className="admin-card-head">
             <div>
@@ -2288,41 +2298,37 @@ export function AdminDashboard({
               </div>
             ))}
           </div>
-        </article>
 
-        <div className="admin-side-column">
-          <MiniIndex />
-
-          <article className="admin-card">
-          <div className="admin-card-head">
-            <div>
-              <p className="eyebrow">Applications</p>
-              <h2>Recent leads</h2>
+          <div className="admin-card admin-applications-card" id="applications">
+            <div className="admin-card-head">
+              <div>
+                <p className="eyebrow">Forms sent</p>
+                <h2>Recent leads</h2>
+              </div>
+              <ArrowRight size={18} />
             </div>
-            <ArrowRight size={18} />
-          </div>
-          <div className="application-list">
-            {applications.length ? (
-              applications.map((item) => (
-                <div key={item.id} className="application-item">
-                  <div className="application-top">
-                    <strong>{item.full_name}</strong>
-                    <span>{new Date(item.created_at).toLocaleString()}</span>
+            <div className="application-list">
+              {applications.length ? (
+                applications.map((item) => (
+                  <div key={item.id} className="application-item">
+                    <div className="application-top">
+                      <strong>{item.full_name}</strong>
+                      <span>{new Date(item.created_at).toLocaleString()}</span>
+                    </div>
+                    <p>{item.email}</p>
+                    <p>{item.whatsapp_number}</p>
+                    <p>{item.country}</p>
+                    <p>{item.account_size}</p>
+                    {item.broker ? <p>Broker: {item.broker}</p> : null}
+                    <p className="application-message">{item.message}</p>
                   </div>
-                  <p>{item.email}</p>
-                  <p>{item.whatsapp_number}</p>
-                  <p>{item.country}</p>
-                  <p>{item.account_size}</p>
-                  {item.broker ? <p>Broker: {item.broker}</p> : null}
-                  <p className="application-message">{item.message}</p>
-                </div>
-              ))
-            ) : (
-              <p className="empty-state">No applications yet.</p>
-            )}
+                ))
+              ) : (
+                <p className="empty-state">No applications yet.</p>
+              )}
+            </div>
           </div>
         </article>
-        </div>
       </section>
     </main>
   );

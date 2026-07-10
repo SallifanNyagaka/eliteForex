@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CircleDollarSign, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { getChromeContent, getPackagesPageContent } from "@/lib/cms";
 import { SiteShell } from "@/components/site-shell";
 import { SectionHeading } from "@/components/section-heading";
@@ -8,6 +8,41 @@ import { PackageInquiryModal } from "@/components/package-inquiry-modal";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+function PlanCard({
+  name,
+  deposit,
+  features,
+  featured,
+}: {
+  name: string;
+  deposit: string;
+  features: string[];
+  featured?: boolean;
+}) {
+  return (
+    <article className={`plan-card ${featured ? "featured" : ""}`}>
+      {featured ? <span className="plan-badge">Most Popular</span> : null}
+      <div className="plan-top">
+        <CheckCircle2 size={18} />
+        <h3>{name}</h3>
+      </div>
+      <div className="plan-deposit">
+        <span>Minimum Deposit</span>
+        <strong>{deposit}</strong>
+      </div>
+      <ul className="feature-list">
+        {features.map((feature) => (
+          <li key={feature}>
+            <CheckCircle2 size={16} />
+            <span>{feature}</span>
+          </li>
+        ))}
+      </ul>
+      <PackageInquiryModal packageName={name} triggerLabel="Get Started" />
+    </article>
+  );
+}
 
 export default async function PackagesPage() {
   const [chrome, content] = await Promise.all([getChromeContent(), getPackagesPageContent()]);
@@ -42,55 +77,25 @@ export default async function PackagesPage() {
 
       <section className="content-section" id="tiers">
         <SectionHeading
-          eyebrow="Investment Plans"
-          title="Responsive tier matrix with database-driven CTA modals."
-          description="Every tier card can be edited in Supabase and the inquiry flow captures the selected package automatically."
+          eyebrow="Account Management Plans"
+          title="Structured plans with clear positioning and no clutter."
+          description="Each package uses the same card layout as the homepage, with pricing and benefits managed from the database."
         />
 
-        <div className="tier-grid">
+        <div className="plans-grid">
           {content.tiers.map((tier) => (
-            <article key={tier.name} className={`tier-card ${tier.featured ? "featured" : ""}`}>
-              {tier.featured ? <span className="tier-badge">Most Popular</span> : null}
-              {tier.image?.url ? <img src={tier.image.url} alt={tier.image.alt || tier.name} className="tier-image" /> : null}
-
-              <h3>{tier.name}</h3>
-
-              <div className="tier-stats">
-                <div>
-                  <span>Minimum Deposit</span>
-                  <strong>{tier.minimumDeposit}</strong>
-                </div>
-                <div>
-                  <span>Target Monthly ROI</span>
-                  <strong>{tier.targetMonthlyRoi}</strong>
-                </div>
-                <div>
-                  <span>Profit Split</span>
-                  <strong>{tier.profitSplit}</strong>
-                </div>
-                <div>
-                  <span>Risk Profile</span>
-                  <strong>{tier.riskProfile}</strong>
-                </div>
-              </div>
-
-              <ul className="tier-benefits">
-                {tier.benefits.map((benefit) => (
-                  <li key={benefit}>
-                    <ShieldCheck size={16} />
-                    <span>{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="tier-actions">
-                <PackageInquiryModal packageName={tier.name} />
-                <Link className="secondary-button" href="/contact">
-                  Contact Sales
-                  <CircleDollarSign size={16} />
-                </Link>
-              </div>
-            </article>
+            <PlanCard
+              key={tier.name}
+              name={tier.name}
+              deposit={tier.minimumDeposit}
+              featured={tier.featured}
+              features={[
+                ...tier.benefits,
+                `Target Monthly ROI: ${tier.targetMonthlyRoi}`,
+                `Profit Split: ${tier.profitSplit}`,
+                `Risk Profile: ${tier.riskProfile}`,
+              ]}
+            />
           ))}
         </div>
       </section>

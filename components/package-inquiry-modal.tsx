@@ -7,8 +7,10 @@ import { ArrowRight } from "lucide-react";
 
 export function PackageInquiryModal({
   packageName,
+  triggerLabel = "Inquire Now",
 }: {
   packageName: string;
+  triggerLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -16,7 +18,7 @@ export function PackageInquiryModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button className="secondary-button" type="button">
-          Inquire Now <ArrowRight size={16} />
+          {triggerLabel} <ArrowRight size={16} />
         </button>
       </DialogTrigger>
 
