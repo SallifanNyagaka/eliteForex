@@ -8,6 +8,7 @@ values
     "phone": "+254 708 218 368",
     "email": "support@eliteforexfund.com",
     "location": "Nairobi, Kenya",
+    "socialLinks": [],
     "footerBlurb": "Professional Forex Account Management for serious investors.",
     "disclaimer": "Forex trading involves significant risk and may not be suitable for all investors. Past performance is not indicative of future results."
   }'::jsonb),
@@ -16,6 +17,7 @@ values
     { "label": "About", "href": "/about" },
     { "label": "Services", "href": "/services" },
     { "label": "Packages", "href": "/packages" },
+    { "label": "Performance", "href": "/performance" },
     { "label": "FAQ", "href": "/faq" },
     { "label": "Contact", "href": "/contact" }
   ]'::jsonb),
@@ -140,7 +142,8 @@ values
     { "question": "How do I get started?", "answer": "Choose a package or submit a contact inquiry and the team will guide you through onboarding.", "priority": 1 },
     { "question": "Can I change my package later?", "answer": "Yes. Package changes can be reviewed once your objectives are updated.", "priority": 2 },
     { "question": "How are results reported?", "answer": "Performance summaries are communicated through the reporting process and admin dashboard.", "priority": 3 }
-  ]'::jsonb)
+  ]'::jsonb),
+  ('performance_gallery', '[]'::jsonb)
 on conflict (section_key) do update
 set payload = excluded.payload,
     updated_at = now();

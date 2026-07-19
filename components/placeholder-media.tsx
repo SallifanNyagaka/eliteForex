@@ -14,7 +14,7 @@ export function PlaceholderMedia({
   if (asset?.url) {
     return (
       <div className="placeholder-media">
-        <Image src={asset.url} alt={asset.alt || label} fill className="placeholder-image" />
+        <Image src={asset.url} alt={asset.alt || label} fill unoptimized className="placeholder-image" />
       </div>
     );
   }

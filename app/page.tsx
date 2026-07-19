@@ -87,7 +87,7 @@ export default async function Home() {
               {content.hero.primaryCta}
               <ArrowRight size={18} />
             </a>
-            <a className="secondary-button" href="#performance">
+            <a className="secondary-button" href="/performance">
               {content.hero.secondaryCta}
             </a>
           </div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Linkedin } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getAboutPageContent, getChromeContent, formatYearsInOperation } from "@/lib/cms";
 import { SiteShell } from "@/components/site-shell";
 import { SectionHeading } from "@/components/section-heading";
@@ -37,7 +37,7 @@ export default async function AboutPage() {
         <PlaceholderMedia
           asset={content.hero.media}
           label="About page image"
-          note="Upload a leadership or office image from the admin panel."
+          note="Upload a brand or office image from the admin panel."
         />
       </section>
 
@@ -59,35 +59,6 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="content-section">
-        <SectionHeading
-          eyebrow="Leadership"
-          title="A dynamic team grid from the database."
-          description="Each profile can carry a placeholder image, role, and social profile link."
-        />
-
-        <div className="team-grid">
-          {content.team.map((member) => (
-            <article key={member.name} className="team-card">
-                <div className="team-photo">
-                  {member.image?.url ? (
-                    <img src={member.image.url} alt={member.image.alt || member.name} className="team-image" />
-                  ) : (
-                    <span>{member.name}</span>
-                  )}
-                </div>
-              <h3>{member.name}</h3>
-              <p>{member.role}</p>
-              {member.linkedinUrl ? (
-                <a href={member.linkedinUrl} target="_blank" rel="noreferrer">
-                  <Linkedin size={16} />
-                  LinkedIn
-                </a>
-              ) : null}
-            </article>
-          ))}
-        </div>
-      </section>
     </SiteShell>
   );
 }

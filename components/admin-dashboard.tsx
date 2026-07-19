@@ -19,7 +19,10 @@ import {
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { AdminSectionKey } from "@/lib/admin";
+import type { PerformanceScreenshot } from "@/lib/cms-types";
+import { normalizePerformanceGallery } from "@/lib/performance-gallery";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { PerformanceGalleryEditor } from "@/components/admin/performance-gallery-editor";
 
 type ContentRow = {
   section_key: AdminSectionKey;
@@ -56,6 +59,12 @@ type NavigationDraft = {
   href: string;
 };
 
+type SocialLinkDraft = {
+  label: string;
+  iconName: string;
+  url: string;
+};
+
 type SiteDraft = {
   brandName: string;
   siteName: string;
@@ -69,6 +78,7 @@ type SiteDraft = {
   email: string;
   location: string;
   logo: MediaDraft;
+  socialLinks: SocialLinkDraft[];
 };
 
 type HeroDraft = {
@@ -177,14 +187,26 @@ const iconOptions = [
   { label: "Star", value: "star" },
 ] as const;
 
+const socialIconOptions = [
+  { label: "Facebook", value: "facebook" },
+  { label: "Instagram", value: "instagram" },
+  { label: "LinkedIn", value: "linkedin" },
+  { label: "YouTube", value: "youtube" },
+  { label: "X / Twitter", value: "twitter" },
+  { label: "Telegram", value: "telegram" },
+  { label: "TikTok", value: "tiktok" },
+  { label: "Website", value: "website" },
+] as const;
+
 const sectionGroups: Array<{ title: string; sections: AdminSectionKey[] }> = [
   { title: "Global Brand", sections: ["site", "navigation"] },
   { title: "Home Page", sections: ["hero", "stats", "plans", "performance", "whyChoose", "steps"] },
-  { title: "About Page", sections: ["about_hero", "about_journey", "about_team"] },
+  { title: "About Page", sections: ["about_hero", "about_journey"] },
   { title: "Services Page", sections: ["services_hero", "services_list"] },
   { title: "Packages Page", sections: ["packages_hero", "packages_tiers"] },
   { title: "Contact Page", sections: ["contact_hero", "contact_channels", "contact_budgets"] },
   { title: "FAQ Page", sections: ["faq_hero", "faq_items"] },
+  { title: "Performance Page", sections: ["performance_gallery"] },
 ];
 
 const quickJumpTargets = sectionGroups.map((group) => ({
@@ -215,6 +237,7 @@ const sectionLabels: Record<AdminSectionKey, string> = {
   contact_budgets: "Budget options",
   faq_hero: "FAQ hero",
   faq_items: "FAQ items",
+  performance_gallery: "Performance screenshots",
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -278,6 +301,7 @@ function normalizeSite(value: unknown): SiteDraft {
       email: "",
       location: "",
       logo: emptyMedia(),
+      socialLinks: [],
     };
   }
 
@@ -294,6 +318,17 @@ function normalizeSite(value: unknown): SiteDraft {
     email: asString(value.email),
     location: asString(value.location),
     logo: normalizeMedia(value.logo),
+    socialLinks: Array.isArray(value.socialLinks)
+      ? value.socialLinks.map((item) =>
+          isRecord(item)
+            ? {
+                label: asString(item.label),
+                iconName: asString(item.iconName, "facebook"),
+                url: asString(item.url),
+              }
+            : { label: "", iconName: "facebook", url: "" }
+        )
+      : [],
   };
 }
 
@@ -569,6 +604,7 @@ function buildDrafts(content: ContentRow[]): DraftState {
     contact_budgets: normalizeBudgets(map.get("contact_budgets")),
     faq_hero: normalizeHero(map.get("faq_hero")),
     faq_items: normalizeFaq(map.get("faq_items")),
+    performance_gallery: normalizePerformanceGallery(map.get("performance_gallery")),
   };
 }
 
@@ -1209,6 +1245,81 @@ export function AdminDashboard({
               value={site.logo}
               onChange={(next) => updateSection<SiteDraft>(sectionKey, (current) => ({ ...current, logo: next }))}
             />
+            <div className="repeat-stack">
+              <SectionDivider title="Social media links" />
+              {site.socialLinks.map((social, index) => (
+                <div key={`social-${index}`} className="repeat-item">
+                  <div className="cms-grid three-col">
+                    <TextField
+                      label="Label"
+                      value={social.label}
+                      onChange={(next) =>
+                        updateSection<SiteDraft>(sectionKey, (current) => ({
+                          ...current,
+                          socialLinks: current.socialLinks.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, label: next } : item
+                          ),
+                        }))
+                      }
+                    />
+                    <SelectField
+                      label="Icon"
+                      value={social.iconName}
+                      options={socialIconOptions}
+                      onChange={(next) =>
+                        updateSection<SiteDraft>(sectionKey, (current) => ({
+                          ...current,
+                          socialLinks: current.socialLinks.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, iconName: next } : item
+                          ),
+                        }))
+                      }
+                    />
+                    <TextField
+                      label="Profile URL"
+                      value={social.url}
+                      placeholder="https://..."
+                      onChange={(next) =>
+                        updateSection<SiteDraft>(sectionKey, (current) => ({
+                          ...current,
+                          socialLinks: current.socialLinks.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, url: next } : item
+                          ),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="repeat-controls">
+                    <button
+                      type="button"
+                      className="ghost-button danger"
+                      onClick={() =>
+                        updateSection<SiteDraft>(sectionKey, (current) => ({
+                          ...current,
+                          socialLinks: current.socialLinks.filter((_, itemIndex) => itemIndex !== index),
+                        }))
+                      }
+                    >
+                      <Trash2 size={14} />
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={() =>
+                  updateSection<SiteDraft>(sectionKey, (current) => ({
+                    ...current,
+                    socialLinks: [...current.socialLinks, { label: "", iconName: "facebook", url: "" }],
+                  }))
+                }
+              >
+                <Plus size={14} />
+                Add social link
+              </button>
+            </div>
           </SectionCard>
         );
       }
@@ -2427,6 +2538,21 @@ export function AdminDashboard({
               ))}
             </div>
           </SectionCard>
+        );
+      }
+
+      case "performance_gallery": {
+        const screenshots = (payload ?? []) as PerformanceScreenshot[];
+
+        return (
+          <PerformanceGalleryEditor
+            items={screenshots}
+            supabaseUrl={supabaseUrl}
+            supabaseAnonKey={supabaseAnonKey}
+            onChange={(nextItems) =>
+              updateSection<PerformanceScreenshot[]>(sectionKey, () => nextItems)
+            }
+          />
         );
       }
 

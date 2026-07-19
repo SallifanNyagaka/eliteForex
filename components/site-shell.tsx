@@ -7,23 +7,15 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import type { SiteChrome } from "@/lib/cms-types";
 import { MobileMenu } from "@/components/mobile-menu";
+import { SocialIcon } from "@/components/social-icon";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
-export function SiteShell({
-  chrome,
-  children,
-}: {
-  chrome: SiteChrome;
-  children: ReactNode;
-}) {
+export function SiteShell({ chrome, children }: { chrome: SiteChrome; children: ReactNode }) {
   const year = new Date().getFullYear();
   const pathname = usePathname();
 
   function isActiveLink(href: string) {
-    if (href === "/") {
-      return pathname === "/";
-    }
-
+    if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
@@ -46,7 +38,12 @@ export function SiteShell({
 
         <nav className="site-nav" aria-label="Primary">
           {chrome.navLinks.map((item) => (
-            <Link key={item.label} href={item.href} aria-current={isActiveLink(item.href) ? "page" : undefined} className={isActiveLink(item.href) ? "nav-link active" : "nav-link"}>
+            <Link
+              key={item.label}
+              href={item.href}
+              aria-current={isActiveLink(item.href) ? "page" : undefined}
+              className={isActiveLink(item.href) ? "nav-link active" : "nav-link"}
+            >
               {item.label}
             </Link>
           ))}
@@ -62,7 +59,6 @@ export function SiteShell({
             <WhatsAppIcon size={16} />
             <span>{chrome.whatsappDisplay}</span>
           </a>
-
           <MobileMenu
             navLinks={chrome.navLinks}
             whatsappNumber={chrome.whatsappNumber}
@@ -74,56 +70,89 @@ export function SiteShell({
 
       <main className="site-main">{children}</main>
 
+      <section className="performance-cta-section" aria-labelledby="performance-cta-title">
+        <div className="performance-cta-inner">
+          <div>
+            <p className="eyebrow">Documented results</p>
+            <h2 id="performance-cta-title">See our latest performance updates.</h2>
+          </div>
+          <Link className="primary-button" href="/performance">
+            View Performance
+          </Link>
+        </div>
+      </section>
+
       <footer className="site-footer">
-        <div className="footer-grid">
-          <div>
-            <div className="footer-brand">
-              <div className="brand-mark" aria-hidden="true">
-                {chrome.logo?.url ? (
-                  <Image src={chrome.logo.url} alt={chrome.logo.alt || chrome.siteName} fill className="brand-logo" />
-                ) : (
-                  <Crown size={18} />
-                )}
+        <div className="site-footer-inner">
+          <div className="footer-grid">
+            <div>
+              <div className="footer-brand">
+                <div className="brand-mark" aria-hidden="true">
+                  {chrome.logo?.url ? (
+                    <Image src={chrome.logo.url} alt={chrome.logo.alt || chrome.siteName} fill className="brand-logo" />
+                  ) : (
+                    <Crown size={18} />
+                  )}
+                </div>
+                <div>
+                  <strong>{chrome.brandName ?? chrome.siteName}</strong>
+                  <span>{chrome.tagline}</span>
+                </div>
               </div>
-              <div>
-                <strong>{chrome.brandName ?? chrome.siteName}</strong>
-                <span>{chrome.tagline}</span>
+              <p>{chrome.footerBlurb}</p>
+              {chrome.socialLinks.length ? (
+                <div className="footer-socials" aria-label="Social media links">
+                  {chrome.socialLinks
+                    .filter((social) => social.url)
+                    .map((social) => (
+                      <a
+                        key={`${social.iconName}-${social.url}`}
+                        className="footer-social-link"
+                        href={social.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={social.label || social.iconName}
+                        title={social.label || social.iconName}
+                      >
+                        <SocialIcon name={social.iconName} />
+                      </a>
+                    ))}
+                </div>
+              ) : null}
+            </div>
+
+            <div>
+              <h3>Navigate</h3>
+              <div className="footer-links">
+                {chrome.navLinks.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    aria-current={isActiveLink(item.href) ? "page" : undefined}
+                    className={isActiveLink(item.href) ? "nav-link active" : "nav-link"}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
-            <p>{chrome.footerBlurb}</p>
-          </div>
 
-          <div>
-            <h3>Navigate</h3>
-            <div className="footer-links">
-              {chrome.navLinks.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  aria-current={isActiveLink(item.href) ? "page" : undefined}
-                  className={isActiveLink(item.href) ? "nav-link active" : "nav-link"}
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <div>
+              <h3>Contact</h3>
+              <p>{chrome.whatsappDisplay}</p>
+              <p>{chrome.email}</p>
+              <p>{chrome.location}</p>
             </div>
           </div>
 
-          <div>
-            <h3>Contact</h3>
-            <p>{chrome.whatsappDisplay}</p>
-            <p>{chrome.email}</p>
-            <p>{chrome.location}</p>
+          <div className="footer-meta">
+            <span>&copy; {year} {chrome.copyrightName}.</span>
           </div>
-        </div>
 
-        <div className="footer-meta">
-          <span>© {year} {chrome.copyrightName}.</span>
-        </div>
-
-        <div className="footer-disclaimer">
-          <strong>Regulatory Disclaimer</strong>
-          <p>{chrome.disclaimer}</p>
+          <div className="footer-disclaimer">
+            <strong>Regulatory Disclaimer</strong>
+            <p>{chrome.disclaimer}</p>
+          </div>
         </div>
       </footer>
     </div>

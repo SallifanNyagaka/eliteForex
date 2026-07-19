@@ -25,9 +25,11 @@ import type {
   IconResolver,
   PackagesPageContent,
   PageHero,
+  PerformancePageContent,
   ServicesPageContent,
   SiteChrome,
 } from "@/lib/cms-types";
+import { PERFORMANCE_GALLERY_KEY, normalizePerformanceGallery } from "@/lib/performance-gallery";
 
 const iconResolver: IconResolver = {
   "shield-check": ShieldCheck,
@@ -58,6 +60,7 @@ const fallbackChrome: SiteChrome = {
     { label: "About", href: "/about" },
     { label: "Services", href: "/services" },
     { label: "Packages", href: "/packages" },
+    { label: "Performance", href: "/performance" },
     { label: "FAQ", href: "/faq" },
     { label: "Contact", href: "/contact" },
   ],
@@ -73,6 +76,7 @@ const fallbackChrome: SiteChrome = {
     url: "",
     alt: "Elite Forex Fund logo",
   },
+  socialLinks: [],
 };
 
 const fallbackAbout: AboutPageContent = {
@@ -331,7 +335,9 @@ export async function getChromeContent(): Promise<SiteChrome> {
     ...rawSite,
     brandName: rawSite.brandName ?? rawSite.siteName,
     siteName: rawSite.siteName ?? rawSite.brandName ?? fallbackChrome.siteName,
+    copyrightName: rawSite.copyrightName || rawSite.brandName || rawSite.siteName || fallbackChrome.copyrightName,
     navLinks,
+    socialLinks: Array.isArray(rawSite.socialLinks) ? rawSite.socialLinks : fallbackChrome.socialLinks,
   };
 }
 
@@ -349,6 +355,15 @@ export async function getAboutPageContent(): Promise<AboutPageContent> {
       milestones: (journey.milestones ?? fallbackAbout.journey.milestones) as AboutPageContent["journey"]["milestones"],
     },
     team,
+  };
+}
+
+export async function getPerformancePageContent(): Promise<PerformancePageContent> {
+  const rows = await fetchSections([PERFORMANCE_GALLERY_KEY]);
+  const map = toMap(rows);
+
+  return {
+    screenshots: normalizePerformanceGallery(map.get(PERFORMANCE_GALLERY_KEY)),
   };
 }
 

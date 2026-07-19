@@ -27,6 +27,22 @@ export type NavLink = {
   href: string;
 };
 
+export type SocialIconName =
+  | "facebook"
+  | "instagram"
+  | "linkedin"
+  | "youtube"
+  | "twitter"
+  | "telegram"
+  | "tiktok"
+  | "website";
+
+export type SocialLink = {
+  label: string;
+  iconName: SocialIconName;
+  url: string;
+};
+
 export type MediaPlaceholder = {
   label: string;
   note?: string;
@@ -106,6 +122,7 @@ export type SiteChrome = {
   email: string;
   location: string;
   logo?: MediaAsset | null;
+  socialLinks: SocialLink[];
 };
 
 export type AboutPageContent = {
@@ -136,6 +153,19 @@ export type ContactPageContent = {
 export type FaqPageContent = {
   hero: PageHero;
   items: FaqItem[];
+};
+
+export type PerformanceScreenshot = {
+  id: string;
+  title: string;
+  description: string;
+  image: MediaAsset;
+  storagePath: string;
+  createdAt: string;
+};
+
+export type PerformancePageContent = {
+  screenshots: PerformanceScreenshot[];
 };
 
 export type DynamicCmsSection = {

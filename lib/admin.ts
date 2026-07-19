@@ -19,6 +19,7 @@ export const ADMIN_SECTIONS = [
   "contact_budgets",
   "faq_hero",
   "faq_items",
+  "performance_gallery",
 ] as const;
 
 export type AdminSectionKey = (typeof ADMIN_SECTIONS)[number];
