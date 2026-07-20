@@ -129,6 +129,11 @@
   justify-self: stretch;
 }
 
+.wide-media-hero > .placeholder-media {
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+}
+
 .hero-media-cta {
   display: inline-flex;
   min-height: 42px;

@@ -49,7 +49,7 @@ export default async function PackagesPage() {
 
   return (
     <SiteShell chrome={chrome}>
-      <section className="page-hero">
+      <section className="page-hero wide-media-hero">
         <div className="hero-copy">
           <p className="eyebrow">{content.hero.eyebrow}</p>
           <h1 className="page-title">{content.hero.title}</h1>
