@@ -35,6 +35,10 @@ const fallbackContent: SiteContent = {
       url: "",
       alt: "Homepage hero placeholder",
     },
+    mediaActions: [
+      { label: "Apply Now", href: "#apply", position: "auto" },
+      { label: "View Performance", href: "/performance", position: "auto" },
+    ],
     highlights: [
       {
         title: "Disciplined",

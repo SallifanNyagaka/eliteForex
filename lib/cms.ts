@@ -32,6 +32,7 @@ import type {
   SocialLink,
 } from "@/lib/cms-types";
 import { PERFORMANCE_GALLERY_KEY, normalizePerformanceGallery } from "@/lib/performance-gallery";
+import { normalizeContactSettings } from "@/lib/contact-settings";
 
 const iconResolver: IconResolver = {
   "shield-check": ShieldCheck,
@@ -79,6 +80,10 @@ const fallbackChrome: SiteChrome = {
     alt: "Elite Forex Fund logo",
   },
   socialLinks: [],
+  phoneNumbers: [
+    { label: "WhatsApp", number: "254708218368", display: "+254 708 218 368" },
+  ],
+  privacyPolicy: null,
 };
 
 const fallbackAbout: AboutPageContent = {
@@ -93,6 +98,10 @@ const fallbackAbout: AboutPageContent = {
       url: "",
       alt: "Team and office visual placeholder",
     },
+    mediaActions: [
+      { label: "Contact Us", href: "/contact", position: "auto" },
+      { label: "View Performance", href: "/performance", position: "auto" },
+    ],
   },
   journey: {
     startYear: dynamicStartYear,
@@ -145,6 +154,10 @@ const fallbackServices: ServicesPageContent = {
     ctaPrimary: "View Packages",
     ctaSecondary: "Contact Us",
     media: { url: "", alt: "Services page hero placeholder" },
+    mediaActions: [
+      { label: "Contact Us", href: "/contact", position: "auto" },
+      { label: "View Performance", href: "/performance", position: "auto" },
+    ],
   },
   services: [
     {
@@ -183,6 +196,10 @@ const fallbackPackages: PackagesPageContent = {
     ctaPrimary: "Inquire Now",
     ctaSecondary: "Ask a Question",
     media: { url: "", alt: "Packages page hero placeholder" },
+    mediaActions: [
+      { label: "Make an Inquiry", href: "/contact", position: "auto" },
+      { label: "View Performance", href: "/performance", position: "auto" },
+    ],
   },
   tiers: [
     {
@@ -225,6 +242,10 @@ const fallbackContact: ContactPageContent = {
     ctaPrimary: "Submit Inquiry",
     ctaSecondary: "View FAQ",
     media: { url: "", alt: "Contact page placeholder" },
+    mediaActions: [
+      { label: "Send an Inquiry", href: "#contact-form", position: "auto" },
+      { label: "View Performance", href: "/performance", position: "auto" },
+    ],
   },
   channels: [
     {
@@ -258,6 +279,10 @@ const fallbackFaq: FaqPageContent = {
     ctaPrimary: "Contact Us",
     ctaSecondary: "View Packages",
     media: { url: "", alt: "FAQ page placeholder" },
+    mediaActions: [
+      { label: "Contact Us", href: "/contact", position: "auto" },
+      { label: "View Performance", href: "/performance", position: "auto" },
+    ],
   },
   items: [
     {
@@ -365,11 +390,17 @@ export function formatYearsInOperation(startYear: number) {
 }
 
 export async function getChromeContent(): Promise<SiteChrome> {
-  const rows = await fetchSections(["site", "navigation", "socials"]);
+  const rows = await fetchSections(["site", "navigation", "socials", "contact_settings"]);
   const map = toMap(rows);
   const rawSite = (map.get("site") ?? {}) as Partial<SiteChrome>;
   const storedNavLinks = (map.get("navigation") ?? fallbackChrome.navLinks) as SiteChrome["navLinks"];
   const socialLinks = normalizeSocialLinks(map.get("socials") ?? rawSite.socialLinks);
+  const legacyPhones = [{
+    label: "WhatsApp",
+    number: rawSite.whatsappNumber || fallbackChrome.whatsappNumber,
+    display: rawSite.whatsappDisplay || fallbackChrome.whatsappDisplay,
+  }];
+  const contactSettings = normalizeContactSettings(map.get("contact_settings"), legacyPhones);
 
   return {
     ...fallbackChrome,
@@ -379,6 +410,8 @@ export async function getChromeContent(): Promise<SiteChrome> {
     copyrightName: rawSite.copyrightName || rawSite.brandName || rawSite.siteName || fallbackChrome.copyrightName,
     navLinks: ensurePerformanceNavigation(storedNavLinks),
     socialLinks,
+    phoneNumbers: contactSettings.phoneNumbers,
+    privacyPolicy: contactSettings.privacyPolicy,
   };
 }
 

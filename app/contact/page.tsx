@@ -39,10 +39,7 @@ export default async function ContactPage() {
           asset={content.hero.media}
           label="Contact hero image"
           note="Upload an office or map visual in the admin panel."
-          actions={[
-            { label: "Send an Inquiry", href: "#contact-form" },
-            { label: "View Performance", href: "/performance" },
-          ]}
+          actions={content.hero.mediaActions}
         />
       </section>
 

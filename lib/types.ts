@@ -58,6 +58,21 @@ export type SiteContent = {
       url: string;
       alt: string;
     } | null;
+    mediaActions: Array<{
+      label: string;
+      href: string;
+      position?:
+        | "auto"
+        | "top-left"
+        | "top-center"
+        | "top-right"
+        | "center-left"
+        | "center"
+        | "center-right"
+        | "bottom-left"
+        | "bottom-center"
+        | "bottom-right";
+    }>;
   };
   stats: Array<{
     value: string;

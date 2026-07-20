@@ -37,10 +37,7 @@ export default async function FaqPage() {
           asset={content.hero.media}
           label="FAQ hero image"
           note="Upload a support or knowledge-base visual in the admin panel."
-          actions={[
-            { label: "Contact Us", href: "/contact" },
-            { label: "View Performance", href: "/performance" },
-          ]}
+          actions={content.hero.mediaActions}
         />
       </section>
 

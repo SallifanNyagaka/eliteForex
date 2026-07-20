@@ -19,9 +19,10 @@ import {
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { AdminSectionKey } from "@/lib/admin";
-import type { PerformanceScreenshot } from "@/lib/cms-types";
+import type { HeroActionPosition, PerformanceScreenshot } from "@/lib/cms-types";
 import { normalizePerformanceGallery } from "@/lib/performance-gallery";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { DocumentUploadField } from "@/components/admin/document-upload-field";
 import { PerformanceGalleryEditor } from "@/components/admin/performance-gallery-editor";
 
 type ContentRow = {
@@ -38,6 +39,9 @@ type ApplicationRow = {
   broker: string | null;
   account_size: string;
   message: string;
+  preferred_contact_method: string;
+  preferred_contact_detail: string | null;
+  confirmed_over_18: boolean;
   created_at: string;
 };
 
@@ -66,6 +70,29 @@ type SocialLinkDraft = {
   description: string;
 };
 
+type PhoneNumberDraft = {
+  label: string;
+  number: string;
+  display: string;
+};
+
+type PrivacyPolicyDraft = {
+  url: string;
+  path: string;
+  fileName: string;
+};
+
+type ContactSettingsDraft = {
+  phoneNumbers: PhoneNumberDraft[];
+  privacyPolicy: PrivacyPolicyDraft;
+};
+
+type MediaActionDraft = {
+  label: string;
+  href: string;
+  position: HeroActionPosition;
+};
+
 type SiteDraft = {
   brandName: string;
   siteName: string;
@@ -89,6 +116,7 @@ type HeroDraft = {
   ctaSecondary: string;
   rating?: string;
   media: MediaDraft;
+  mediaActions: MediaActionDraft[];
   highlights?: HighlightDraft[];
 };
 
@@ -198,8 +226,49 @@ const socialIconOptions = [
   { label: "Website", value: "website" },
 ] as const;
 
+const heroActionPositionOptions: ReadonlyArray<{ label: string; value: HeroActionPosition }> = [
+  { label: "Automatic", value: "auto" },
+  { label: "Top left", value: "top-left" },
+  { label: "Top center", value: "top-center" },
+  { label: "Top right", value: "top-right" },
+  { label: "Center left", value: "center-left" },
+  { label: "Center", value: "center" },
+  { label: "Center right", value: "center-right" },
+  { label: "Bottom left", value: "bottom-left" },
+  { label: "Bottom center", value: "bottom-center" },
+  { label: "Bottom right", value: "bottom-right" },
+];
+
+const defaultHeroActions: Partial<Record<AdminSectionKey, MediaActionDraft[]>> = {
+  hero: [
+    { label: "Apply Now", href: "#apply", position: "auto" },
+    { label: "View Performance", href: "/performance", position: "auto" },
+  ],
+  about_hero: [
+    { label: "Contact Us", href: "/contact", position: "auto" },
+    { label: "View Performance", href: "/performance", position: "auto" },
+  ],
+  services_hero: [
+    { label: "Contact Us", href: "/contact", position: "auto" },
+    { label: "View Performance", href: "/performance", position: "auto" },
+  ],
+  packages_hero: [
+    { label: "Make an Inquiry", href: "/contact", position: "auto" },
+    { label: "View Performance", href: "/performance", position: "auto" },
+  ],
+  contact_hero: [
+    { label: "Send an Inquiry", href: "#contact-form", position: "auto" },
+    { label: "View Performance", href: "/performance", position: "auto" },
+  ],
+  faq_hero: [
+    { label: "Contact Us", href: "/contact", position: "auto" },
+    { label: "View Performance", href: "/performance", position: "auto" },
+  ],
+};
+
 const sectionGroups: Array<{ title: string; sections: AdminSectionKey[] }> = [
   { title: "Global Brand", sections: ["site", "navigation"] },
+  { title: "Contact & Policy", sections: ["contact_settings"] },
   { title: "Social Media", sections: ["socials"] },
   { title: "Home Page", sections: ["hero", "stats", "plans", "performance", "whyChoose", "steps"] },
   { title: "About Page", sections: ["about_hero", "about_journey"] },
@@ -221,6 +290,7 @@ const sectionLabels: Record<AdminSectionKey, string> = {
   site: "Brand settings",
   navigation: "Navigation",
   socials: "Social media links",
+  contact_settings: "Phone numbers and privacy policy",
   hero: "Homepage hero",
   stats: "Homepage stats",
   plans: "Homepage plans",
@@ -337,7 +407,62 @@ function normalizeSocialLinks(value: unknown): SocialLinkDraft[] {
   );
 }
 
-function normalizeHero(value: unknown): HeroDraft {
+function normalizeMediaActions(value: unknown, fallback: MediaActionDraft[] = []): MediaActionDraft[] {
+  if (!Array.isArray(value)) return fallback.map((action) => ({ ...action }));
+
+  return value.slice(0, 5).map((item) => {
+    if (!isRecord(item)) return { label: "", href: "", position: "auto" };
+
+    const position = heroActionPositionOptions.some((option) => option.value === item.position)
+      ? (item.position as HeroActionPosition)
+      : "auto";
+
+    return {
+      label: asString(item.label),
+      href: asString(item.href, "/"),
+      position,
+    };
+  });
+}
+
+function normalizeContactSettings(value: unknown, site: SiteDraft): ContactSettingsDraft {
+  const fallbackPhone = {
+    label: "WhatsApp",
+    number: site.whatsappNumber,
+    display: site.whatsappDisplay || site.phone || site.whatsappNumber,
+  };
+
+  if (!isRecord(value)) {
+    return {
+      phoneNumbers: fallbackPhone.number ? [fallbackPhone] : [{ label: "WhatsApp", number: "", display: "" }],
+      privacyPolicy: { url: "", path: "", fileName: "" },
+    };
+  }
+
+  const phoneNumbers = Array.isArray(value.phoneNumbers)
+    ? value.phoneNumbers.map((item) =>
+        isRecord(item)
+          ? {
+              label: asString(item.label, "WhatsApp"),
+              number: asString(item.number),
+              display: asString(item.display, asString(item.number)),
+            }
+          : { label: "WhatsApp", number: "", display: "" }
+      )
+    : [];
+  const policy = isRecord(value.privacyPolicy) ? value.privacyPolicy : {};
+
+  return {
+    phoneNumbers: phoneNumbers.length ? phoneNumbers : [fallbackPhone],
+    privacyPolicy: {
+      url: asString(policy.url),
+      path: asString(policy.path),
+      fileName: asString(policy.fileName),
+    },
+  };
+}
+
+function normalizeHero(value: unknown, fallbackActions: MediaActionDraft[] = []): HeroDraft {
   if (!isRecord(value)) {
     return {
       eyebrow: "",
@@ -347,6 +472,7 @@ function normalizeHero(value: unknown): HeroDraft {
       ctaSecondary: "",
       rating: "",
       media: emptyMedia(),
+      mediaActions: fallbackActions.map((action) => ({ ...action })),
       highlights: [emptyHighlight()],
     };
   }
@@ -371,6 +497,7 @@ function normalizeHero(value: unknown): HeroDraft {
     ctaSecondary: asString(value.ctaSecondary),
     rating: asString(value.rating),
     media: normalizeMedia(value.media),
+    mediaActions: normalizeMediaActions(value.mediaActions, fallbackActions),
     highlights,
   };
 }
@@ -586,30 +713,32 @@ function normalizeFaq(value: unknown): FaqDraft[] {
 function buildDrafts(content: ContentRow[]): DraftState {
   const map = new Map(content.map((row) => [row.section_key, row.payload]));
   const sitePayload = map.get("site");
+  const site = normalizeSite(sitePayload);
 
   return {
-    site: normalizeSite(sitePayload),
+    site,
+    contact_settings: normalizeContactSettings(map.get("contact_settings"), site),
     socials: normalizeSocialLinks(map.get("socials") ?? (isRecord(sitePayload) ? sitePayload.socialLinks : undefined)),
     navigation: Array.isArray(map.get("navigation"))
       ? (map.get("navigation") as unknown[]).map(normalizeNavigationItem)
       : [{ label: "", href: "/" }],
-    hero: normalizeHero(map.get("hero")),
+    hero: normalizeHero(map.get("hero"), defaultHeroActions.hero),
     stats: normalizeStats(map.get("stats")),
     plans: normalizePlans(map.get("plans")),
     performance: normalizePerformance(map.get("performance")),
     whyChoose: normalizeHighlights(map.get("whyChoose")),
     steps: normalizeSteps(map.get("steps")),
-    about_hero: normalizeHero(map.get("about_hero")),
+    about_hero: normalizeHero(map.get("about_hero"), defaultHeroActions.about_hero),
     about_journey: normalizeJourney(map.get("about_journey")),
     about_team: normalizeTeam(map.get("about_team")),
-    services_hero: normalizeHero(map.get("services_hero")),
+    services_hero: normalizeHero(map.get("services_hero"), defaultHeroActions.services_hero),
     services_list: normalizeServices(map.get("services_list")),
-    packages_hero: normalizeHero(map.get("packages_hero")),
+    packages_hero: normalizeHero(map.get("packages_hero"), defaultHeroActions.packages_hero),
     packages_tiers: normalizeTiers(map.get("packages_tiers")),
-    contact_hero: normalizeHero(map.get("contact_hero")),
+    contact_hero: normalizeHero(map.get("contact_hero"), defaultHeroActions.contact_hero),
     contact_channels: normalizeChannels(map.get("contact_channels")),
     contact_budgets: normalizeBudgets(map.get("contact_budgets")),
-    faq_hero: normalizeHero(map.get("faq_hero")),
+    faq_hero: normalizeHero(map.get("faq_hero"), defaultHeroActions.faq_hero),
     faq_items: normalizeFaq(map.get("faq_items")),
     performance_gallery: normalizePerformanceGallery(map.get("performance_gallery")),
   };
@@ -875,6 +1004,11 @@ function OverviewCard({
               <p>{item.country}</p>
               <p>{item.account_size}</p>
               {item.broker ? <p>Broker: {item.broker}</p> : null}
+              <p>
+                Preferred contact: {(item.preferred_contact_method || "whatsapp").replace(/^./, (letter) => letter.toUpperCase())}
+                {item.preferred_contact_detail ? ` (${item.preferred_contact_detail})` : ""}
+              </p>
+              <p>Age confirmation: {item.confirmed_over_18 ? "18+ confirmed" : "Not confirmed"}</p>
               <p className="application-message">{item.message}</p>
             </div>
           ))
@@ -1256,6 +1390,118 @@ export function AdminDashboard({
         );
       }
 
+      case "contact_settings": {
+        const settings = (payload ?? normalizeContactSettings(undefined, normalizeSite(undefined))) as ContactSettingsDraft;
+
+        return (
+          <SectionCard
+            sectionKey={sectionKey}
+            title="Phone numbers and privacy policy"
+            description="The first phone number appears in the header. Visitors can use every saved number for WhatsApp or a phone call."
+            saving={saving}
+            onSave={saveSection}
+          >
+            <div className="repeat-stack">
+              <SectionDivider title="Header phone numbers" />
+              {settings.phoneNumbers.map((phone, index) => (
+                <div key={`contact-phone-${index}`} className="repeat-item">
+                  <div className="cms-grid three-col">
+                    <TextField
+                      label={index === 0 ? "Label (primary)" : "Label"}
+                      value={phone.label}
+                      placeholder="Main office"
+                      onChange={(next) =>
+                        updateSection<ContactSettingsDraft>(sectionKey, (current) => ({
+                          ...current,
+                          phoneNumbers: current.phoneNumbers.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, label: next } : item
+                          ),
+                        }))
+                      }
+                    />
+                    <TextField
+                      label="WhatsApp number"
+                      value={phone.number}
+                      placeholder="254708218368"
+                      onChange={(next) =>
+                        updateSection<ContactSettingsDraft>(sectionKey, (current) => ({
+                          ...current,
+                          phoneNumbers: current.phoneNumbers.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, number: next } : item
+                          ),
+                        }))
+                      }
+                    />
+                    <TextField
+                      label="Display number"
+                      value={phone.display}
+                      placeholder="+254 708 218 368"
+                      onChange={(next) =>
+                        updateSection<ContactSettingsDraft>(sectionKey, (current) => ({
+                          ...current,
+                          phoneNumbers: current.phoneNumbers.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, display: next } : item
+                          ),
+                        }))
+                      }
+                    />
+                  </div>
+                  <RepeatControls
+                    index={index}
+                    total={settings.phoneNumbers.length}
+                    onAdd={() =>
+                      updateSection<ContactSettingsDraft>(sectionKey, (current) => ({
+                        ...current,
+                        phoneNumbers: [
+                          ...current.phoneNumbers.slice(0, index + 1),
+                          { label: "WhatsApp", number: "", display: "" },
+                          ...current.phoneNumbers.slice(index + 1),
+                        ],
+                      }))
+                    }
+                    onRemove={() =>
+                      updateSection<ContactSettingsDraft>(sectionKey, (current) => ({
+                        ...current,
+                        phoneNumbers: current.phoneNumbers.length > 1
+                          ? current.phoneNumbers.filter((_, itemIndex) => itemIndex !== index)
+                          : current.phoneNumbers,
+                      }))
+                    }
+                    onMoveUp={() =>
+                      updateSection<ContactSettingsDraft>(sectionKey, (current) => {
+                        const phoneNumbers = [...current.phoneNumbers];
+                        [phoneNumbers[index - 1], phoneNumbers[index]] = [phoneNumbers[index], phoneNumbers[index - 1]];
+                        return { ...current, phoneNumbers };
+                      })
+                    }
+                    onMoveDown={() =>
+                      updateSection<ContactSettingsDraft>(sectionKey, (current) => {
+                        const phoneNumbers = [...current.phoneNumbers];
+                        [phoneNumbers[index], phoneNumbers[index + 1]] = [phoneNumbers[index + 1], phoneNumbers[index]];
+                        return { ...current, phoneNumbers };
+                      })
+                    }
+                  />
+                </div>
+              ))}
+
+              <SectionDivider title="Privacy policy" />
+              <DocumentUploadField
+                supabaseUrl={supabaseUrl}
+                supabaseAnonKey={supabaseAnonKey}
+                folder="site/privacy-policy"
+                label="Privacy Policy PDF"
+                value={settings.privacyPolicy}
+                onChange={(next) =>
+                  updateSection<ContactSettingsDraft>(sectionKey, (current) => ({ ...current, privacyPolicy: next }))
+                }
+              />
+              <p className="admin-copy">Upload a PDF up to 10 MB, then save this section to publish its download link on every form.</p>
+            </div>
+          </SectionCard>
+        );
+      }
+
       case "socials": {
         const socials = (payload ?? []) as SocialLinkDraft[];
 
@@ -1449,6 +1695,110 @@ export function AdminDashboard({
                 value={hero.media}
                 onChange={(next) => updateSection<HeroDraft>(sectionKey, (current) => ({ ...current, media: next }))}
               />
+            </div>
+            <div className="repeat-stack">
+              <SectionDivider title="Hero image CTAs" />
+              {hero.mediaActions.map((action, index) => (
+                <div key={`${sectionKey}-media-action-${index}`} className="repeat-item">
+                  <div className="cms-grid three-col">
+                    <TextField
+                      label="Button label"
+                      value={action.label}
+                      placeholder="View Performance"
+                      onChange={(next) =>
+                        updateSection<HeroDraft>(sectionKey, (current) => ({
+                          ...current,
+                          mediaActions: current.mediaActions.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, label: next } : item
+                          ),
+                        }))
+                      }
+                    />
+                    <TextField
+                      label="Link or page path"
+                      value={action.href}
+                      placeholder="/performance"
+                      onChange={(next) =>
+                        updateSection<HeroDraft>(sectionKey, (current) => ({
+                          ...current,
+                          mediaActions: current.mediaActions.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, href: next } : item
+                          ),
+                        }))
+                      }
+                    />
+                    <SelectField
+                      label="Position"
+                      value={action.position}
+                      options={heroActionPositionOptions}
+                      onChange={(next) =>
+                        updateSection<HeroDraft>(sectionKey, (current) => ({
+                          ...current,
+                          mediaActions: current.mediaActions.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, position: next as HeroActionPosition } : item
+                          ),
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="repeat-controls">
+                    <button
+                      type="button"
+                      className="ghost-button"
+                      disabled={index === 0}
+                      onClick={() =>
+                        updateSection<HeroDraft>(sectionKey, (current) => {
+                          const mediaActions = [...current.mediaActions];
+                          [mediaActions[index - 1], mediaActions[index]] = [mediaActions[index], mediaActions[index - 1]];
+                          return { ...current, mediaActions };
+                        })
+                      }
+                    >
+                      <ArrowUp size={14} /> Move up
+                    </button>
+                    <button
+                      type="button"
+                      className="ghost-button"
+                      disabled={index === hero.mediaActions.length - 1}
+                      onClick={() =>
+                        updateSection<HeroDraft>(sectionKey, (current) => {
+                          const mediaActions = [...current.mediaActions];
+                          [mediaActions[index], mediaActions[index + 1]] = [mediaActions[index + 1], mediaActions[index]];
+                          return { ...current, mediaActions };
+                        })
+                      }
+                    >
+                      <ArrowDown size={14} /> Move down
+                    </button>
+                    <button
+                      type="button"
+                      className="ghost-button danger"
+                      onClick={() =>
+                        updateSection<HeroDraft>(sectionKey, (current) => ({
+                          ...current,
+                          mediaActions: current.mediaActions.filter((_, itemIndex) => itemIndex !== index),
+                        }))
+                      }
+                    >
+                      <Trash2 size={14} /> Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="ghost-button"
+                disabled={hero.mediaActions.length >= 5}
+                onClick={() =>
+                  updateSection<HeroDraft>(sectionKey, (current) => ({
+                    ...current,
+                    mediaActions: [...current.mediaActions, { label: "", href: "/", position: "auto" }],
+                  }))
+                }
+              >
+                <Plus size={14} />
+                {hero.mediaActions.length >= 5 ? "Maximum of 5 CTAs" : "Add hero image CTA"}
+              </button>
             </div>
             {sectionKey === "hero" ? (
               <div className="repeat-stack">

@@ -5,6 +5,18 @@ export type MediaAsset = {
   alt: string;
 };
 
+export type PhoneNumberEntry = {
+  label: string;
+  number: string;
+  display: string;
+};
+
+export type PrivacyPolicyDocument = {
+  url: string;
+  path: string;
+  fileName: string;
+};
+
 export type IconName =
   | "shield-check"
   | "line-chart"
@@ -47,7 +59,20 @@ export type SocialLink = {
 export type MediaAction = {
   label: string;
   href: string;
+  position?: HeroActionPosition;
 };
+
+export type HeroActionPosition =
+  | "auto"
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "center-left"
+  | "center"
+  | "center-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
 
 export type MediaPlaceholder = {
   label: string;
@@ -61,6 +86,7 @@ export type PageHero = {
   ctaPrimary?: string;
   ctaSecondary?: string;
   media?: MediaAsset | null;
+  mediaActions?: MediaAction[];
 };
 
 export type TeamProfile = {
@@ -129,6 +155,8 @@ export type SiteChrome = {
   location: string;
   logo?: MediaAsset | null;
   socialLinks: SocialLink[];
+  phoneNumbers: PhoneNumberEntry[];
+  privacyPolicy: PrivacyPolicyDocument | null;
 };
 
 export type AboutPageContent = {

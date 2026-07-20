@@ -1,21 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, Phone, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import type { NavLink } from "@/lib/cms-types";
+import type { NavLink, PhoneNumberEntry } from "@/lib/cms-types";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 export function MobileMenu({
   navLinks,
-  whatsappNumber,
-  whatsappDisplay,
+  phoneNumbers,
   currentPath,
 }: {
   navLinks: NavLink[];
-  whatsappNumber: string;
-  whatsappDisplay: string;
+  phoneNumbers: PhoneNumberEntry[];
   currentPath?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -72,16 +70,31 @@ export function MobileMenu({
           ))}
         </nav>
 
-        <a
-          className="call-pill mobile-menu-call"
-          href={`https://wa.me/${whatsappNumber}`}
-          target="_blank"
-          rel="noreferrer"
-          onClick={() => setOpen(false)}
-        >
-          <WhatsAppIcon size={16} />
-          <span className="mobile-menu-call-text">{whatsappDisplay}</span>
-        </a>
+        <div className="mobile-menu-phones" aria-label="Phone numbers">
+          {phoneNumbers.map((phone, index) => (
+            <div className="mobile-menu-phone" key={`${phone.number}-${index}`}>
+              <span className="mobile-menu-call-text">{phone.label}: {phone.display}</span>
+              <div className="mobile-menu-phone-actions">
+                <a
+                  href={`https://wa.me/${phone.number.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setOpen(false)}
+                  aria-label={`Message ${phone.label} on WhatsApp`}
+                >
+                  <WhatsAppIcon size={16} />
+                </a>
+                <a
+                  href={`tel:${phone.number.replace(/[^\d+]/g, "")}`}
+                  onClick={() => setOpen(false)}
+                  aria-label={`Call ${phone.label}`}
+                >
+                  <Phone size={16} />
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

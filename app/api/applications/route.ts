@@ -40,6 +40,9 @@ export async function POST(request: Request) {
     package_name: "packageName" in data ? data.packageName || null : null,
     investment_budget: "investmentBudget" in data ? data.investmentBudget : null,
     source_page: data.sourcePage || null,
+    preferred_contact_method: data.preferredContactMethod,
+    preferred_contact_detail: data.preferredContactMethod === "whatsapp" ? null : data.preferredContactDetail || null,
+    confirmed_over_18: data.confirmedOver18,
   });
 
   if (error) {

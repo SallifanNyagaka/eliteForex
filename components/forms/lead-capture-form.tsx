@@ -26,6 +26,9 @@ type LeadFormValues = {
   accountSize?: string;
   phoneNumber?: string;
   investmentBudget?: string;
+  preferredContactMethod: "whatsapp" | "email" | "phone";
+  preferredContactDetail: string;
+  confirmedOver18: boolean;
 };
 
 const schemaMap = {
@@ -70,6 +73,9 @@ export function LeadCaptureForm({
         country: "",
         broker: "",
         accountSize: "",
+        preferredContactMethod: "whatsapp",
+        preferredContactDetail: "",
+        confirmedOver18: false,
       } satisfies LeadFormValues;
     }
 
@@ -83,6 +89,9 @@ export function LeadCaptureForm({
       sourcePage,
       phoneNumber: "",
       investmentBudget: "",
+      preferredContactMethod: "whatsapp",
+      preferredContactDetail: "",
+      confirmedOver18: false,
     } satisfies LeadFormValues;
   }, [packageName, sourcePage, variant]);
 
@@ -149,6 +158,7 @@ export function LeadCaptureForm({
   };
 
   const isHome = variant === "home";
+  const preferredContactMethod = form.watch("preferredContactMethod") as LeadFormValues["preferredContactMethod"];
 
   return (
     <form className={`lead-capture-form ${compact ? "compact" : ""}`} onSubmit={form.handleSubmit(onSubmit)}>
@@ -236,6 +246,38 @@ export function LeadCaptureForm({
         )}
       </div>
 
+      <div className="form-grid contact-preference-fields">
+        <label className="field">
+          <span>Preferred Contact Method</span>
+          <select
+            {...form.register("preferredContactMethod", {
+              onChange: () => form.setValue("preferredContactDetail", "", { shouldValidate: false }),
+            })}
+          >
+            <option value="whatsapp">WhatsApp</option>
+            <option value="email">Email</option>
+            <option value="phone">Phone Call</option>
+          </select>
+          {renderErrorMessage(form.formState.errors.preferredContactMethod?.message) ? (
+            <em>{renderErrorMessage(form.formState.errors.preferredContactMethod?.message)}</em>
+          ) : null}
+        </label>
+
+        {preferredContactMethod !== "whatsapp" ? (
+          <label className="field">
+            <span>{preferredContactMethod === "email" ? "Preferred Email Address" : "Preferred Phone Number"}</span>
+            <input
+              type={preferredContactMethod === "email" ? "email" : "tel"}
+              autoComplete={preferredContactMethod === "email" ? "email" : "tel"}
+              {...form.register("preferredContactDetail")}
+            />
+            {renderErrorMessage(form.formState.errors.preferredContactDetail?.message) ? (
+              <em>{renderErrorMessage(form.formState.errors.preferredContactDetail?.message)}</em>
+            ) : null}
+          </label>
+        ) : null}
+      </div>
+
       <label className="field textarea-field">
         <span>{fieldCopy[variant].message}</span>
         <textarea rows={compact ? 4 : 5} {...form.register("message")} />
@@ -243,6 +285,19 @@ export function LeadCaptureForm({
           <em>{renderErrorMessage(form.formState.errors.message?.message)}</em>
         ) : null}
       </label>
+
+      <div className="form-consent-block">
+        <label className="form-consent">
+          <input type="checkbox" {...form.register("confirmedOver18")} />
+          <span>I confirm that I am 18 years or older.</span>
+        </label>
+        {renderErrorMessage(form.formState.errors.confirmedOver18?.message) ? (
+          <em className="form-consent-error">{renderErrorMessage(form.formState.errors.confirmedOver18?.message)}</em>
+        ) : null}
+        <p className="privacy-policy-copy">
+          Please review our <a href="/api/privacy-policy" download>Privacy Policy (PDF)</a> before submitting.
+        </p>
+      </div>
 
       <button className="primary-button submit-button" type="submit" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? <Loader2 size={18} className="spin" /> : <ArrowRight size={18} />}

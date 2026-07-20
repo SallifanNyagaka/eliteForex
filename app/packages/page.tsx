@@ -72,10 +72,7 @@ export default async function PackagesPage() {
           asset={content.hero.media}
           label="Packages hero image"
           note="Upload a tier banner in the admin panel."
-          actions={[
-            { label: "Make an Inquiry", href: "/contact" },
-            { label: "View Performance", href: "/performance" },
-          ]}
+          actions={content.hero.mediaActions}
         />
       </section>
 

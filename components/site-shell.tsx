@@ -7,8 +7,8 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import type { SiteChrome } from "@/lib/cms-types";
 import { MobileMenu } from "@/components/mobile-menu";
+import { PhoneDropdown } from "@/components/phone-dropdown";
 import { SocialIcon } from "@/components/social-icon";
-import { WhatsAppIcon } from "@/components/whatsapp-icon";
 
 export function SiteShell({ chrome, children }: { chrome: SiteChrome; children: ReactNode }) {
   const year = new Date().getFullYear();
@@ -50,19 +50,10 @@ export function SiteShell({ chrome, children }: { chrome: SiteChrome; children: 
         </nav>
 
         <div className="site-header-actions">
-          <a
-            className="call-pill site-call-pill"
-            href={`https://wa.me/${chrome.whatsappNumber}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <WhatsAppIcon size={16} />
-            <span>{chrome.whatsappDisplay}</span>
-          </a>
+          <PhoneDropdown phoneNumbers={chrome.phoneNumbers} />
           <MobileMenu
             navLinks={chrome.navLinks}
-            whatsappNumber={chrome.whatsappNumber}
-            whatsappDisplay={chrome.whatsappDisplay}
+            phoneNumbers={chrome.phoneNumbers}
             currentPath={pathname}
           />
         </div>
@@ -139,7 +130,7 @@ export function SiteShell({ chrome, children }: { chrome: SiteChrome; children: 
 
             <div>
               <h3>Contact</h3>
-              <p>{chrome.whatsappDisplay}</p>
+              {chrome.phoneNumbers.map((phone, index) => <p key={`${phone.number}-${index}`}>{phone.display}</p>)}
               <p>{chrome.email}</p>
               <p>{chrome.location}</p>
             </div>

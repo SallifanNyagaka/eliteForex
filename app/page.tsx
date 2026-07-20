@@ -81,10 +81,7 @@ export default async function Home() {
           <PlaceholderMedia
             asset={content.hero.media}
             label="Homepage hero image"
-            actions={[
-              { label: "Apply Now", href: "#apply" },
-              { label: "View Performance", href: "/performance" },
-            ]}
+            actions={content.hero.mediaActions}
           />
         </div>
 
