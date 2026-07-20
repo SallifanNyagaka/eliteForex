@@ -78,7 +78,14 @@ export default async function Home() {
         </div>
 
         <div className="hero-visual">
-          <PlaceholderMedia asset={content.hero.media} label="Homepage hero image" />
+          <PlaceholderMedia
+            asset={content.hero.media}
+            label="Homepage hero image"
+            actions={[
+              { label: "Apply Now", href: "#apply" },
+              { label: "View Performance", href: "/performance" },
+            ]}
+          />
         </div>
 
         <div className="hero-body">

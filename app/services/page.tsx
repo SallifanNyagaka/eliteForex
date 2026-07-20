@@ -36,6 +36,10 @@ export default async function ServicesPage() {
           asset={content.hero.media}
           label="Services hero image"
           note="Upload a service banner in the admin panel."
+          actions={[
+            { label: "Contact Us", href: "/contact" },
+            { label: "View Performance", href: "/performance" },
+          ]}
         />
       </section>
 

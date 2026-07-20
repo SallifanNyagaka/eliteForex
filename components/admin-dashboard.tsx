@@ -63,6 +63,7 @@ type SocialLinkDraft = {
   label: string;
   iconName: string;
   url: string;
+  description: string;
 };
 
 type SiteDraft = {
@@ -78,7 +79,6 @@ type SiteDraft = {
   email: string;
   location: string;
   logo: MediaDraft;
-  socialLinks: SocialLinkDraft[];
 };
 
 type HeroDraft = {
@@ -200,6 +200,7 @@ const socialIconOptions = [
 
 const sectionGroups: Array<{ title: string; sections: AdminSectionKey[] }> = [
   { title: "Global Brand", sections: ["site", "navigation"] },
+  { title: "Social Media", sections: ["socials"] },
   { title: "Home Page", sections: ["hero", "stats", "plans", "performance", "whyChoose", "steps"] },
   { title: "About Page", sections: ["about_hero", "about_journey"] },
   { title: "Services Page", sections: ["services_hero", "services_list"] },
@@ -219,6 +220,7 @@ const defaultAdminGroup = sectionGroups.find((group) => group.title === "Home Pa
 const sectionLabels: Record<AdminSectionKey, string> = {
   site: "Brand settings",
   navigation: "Navigation",
+  socials: "Social media links",
   hero: "Homepage hero",
   stats: "Homepage stats",
   plans: "Homepage plans",
@@ -301,7 +303,6 @@ function normalizeSite(value: unknown): SiteDraft {
       email: "",
       location: "",
       logo: emptyMedia(),
-      socialLinks: [],
     };
   }
 
@@ -318,18 +319,22 @@ function normalizeSite(value: unknown): SiteDraft {
     email: asString(value.email),
     location: asString(value.location),
     logo: normalizeMedia(value.logo),
-    socialLinks: Array.isArray(value.socialLinks)
-      ? value.socialLinks.map((item) =>
-          isRecord(item)
-            ? {
-                label: asString(item.label),
-                iconName: asString(item.iconName, "facebook"),
-                url: asString(item.url),
-              }
-            : { label: "", iconName: "facebook", url: "" }
-        )
-      : [],
   };
+}
+
+function normalizeSocialLinks(value: unknown): SocialLinkDraft[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.map((item) =>
+    isRecord(item)
+      ? {
+          label: asString(item.label),
+          iconName: asString(item.iconName, "facebook"),
+          url: asString(item.url),
+          description: asString(item.description),
+        }
+      : { label: "", iconName: "facebook", url: "", description: "" }
+  );
 }
 
 function normalizeHero(value: unknown): HeroDraft {
@@ -580,9 +585,11 @@ function normalizeFaq(value: unknown): FaqDraft[] {
 
 function buildDrafts(content: ContentRow[]): DraftState {
   const map = new Map(content.map((row) => [row.section_key, row.payload]));
+  const sitePayload = map.get("site");
 
   return {
-    site: normalizeSite(map.get("site")),
+    site: normalizeSite(sitePayload),
+    socials: normalizeSocialLinks(map.get("socials") ?? (isRecord(sitePayload) ? sitePayload.socialLinks : undefined)),
     navigation: Array.isArray(map.get("navigation"))
       ? (map.get("navigation") as unknown[]).map(normalizeNavigationItem)
       : [{ label: "", href: "/" }],
@@ -1245,21 +1252,33 @@ export function AdminDashboard({
               value={site.logo}
               onChange={(next) => updateSection<SiteDraft>(sectionKey, (current) => ({ ...current, logo: next }))}
             />
+          </SectionCard>
+        );
+      }
+
+      case "socials": {
+        const socials = (payload ?? []) as SocialLinkDraft[];
+
+        return (
+          <SectionCard
+            sectionKey={sectionKey}
+            title="Social media"
+            description="Choose an icon, add its profile link, and describe where the link leads for accessibility."
+            saving={saving}
+            onSave={saveSection}
+          >
             <div className="repeat-stack">
-              <SectionDivider title="Social media links" />
-              {site.socialLinks.map((social, index) => (
+              {socials.map((social, index) => (
                 <div key={`social-${index}`} className="repeat-item">
-                  <div className="cms-grid three-col">
+                  <div className="cms-grid two-col">
                     <TextField
-                      label="Label"
+                      label="Platform label"
                       value={social.label}
+                      placeholder="Instagram"
                       onChange={(next) =>
-                        updateSection<SiteDraft>(sectionKey, (current) => ({
-                          ...current,
-                          socialLinks: current.socialLinks.map((item, itemIndex) =>
-                            itemIndex === index ? { ...item, label: next } : item
-                          ),
-                        }))
+                        updateSection<SocialLinkDraft[]>(sectionKey, (current) =>
+                          current.map((item, itemIndex) => itemIndex === index ? { ...item, label: next } : item)
+                        )
                       }
                     />
                     <SelectField
@@ -1267,25 +1286,29 @@ export function AdminDashboard({
                       value={social.iconName}
                       options={socialIconOptions}
                       onChange={(next) =>
-                        updateSection<SiteDraft>(sectionKey, (current) => ({
-                          ...current,
-                          socialLinks: current.socialLinks.map((item, itemIndex) =>
-                            itemIndex === index ? { ...item, iconName: next } : item
-                          ),
-                        }))
+                        updateSection<SocialLinkDraft[]>(sectionKey, (current) =>
+                          current.map((item, itemIndex) => itemIndex === index ? { ...item, iconName: next } : item)
+                        )
                       }
                     />
                     <TextField
                       label="Profile URL"
                       value={social.url}
-                      placeholder="https://..."
+                      placeholder="https://instagram.com/your-profile"
                       onChange={(next) =>
-                        updateSection<SiteDraft>(sectionKey, (current) => ({
-                          ...current,
-                          socialLinks: current.socialLinks.map((item, itemIndex) =>
-                            itemIndex === index ? { ...item, url: next } : item
-                          ),
-                        }))
+                        updateSection<SocialLinkDraft[]>(sectionKey, (current) =>
+                          current.map((item, itemIndex) => itemIndex === index ? { ...item, url: next } : item)
+                        )
+                      }
+                    />
+                    <TextField
+                      label="Icon description"
+                      value={social.description}
+                      placeholder="Follow Elite Forex Fund on Instagram"
+                      onChange={(next) =>
+                        updateSection<SocialLinkDraft[]>(sectionKey, (current) =>
+                          current.map((item, itemIndex) => itemIndex === index ? { ...item, description: next } : item)
+                        )
                       }
                     />
                   </div>
@@ -1294,10 +1317,9 @@ export function AdminDashboard({
                       type="button"
                       className="ghost-button danger"
                       onClick={() =>
-                        updateSection<SiteDraft>(sectionKey, (current) => ({
-                          ...current,
-                          socialLinks: current.socialLinks.filter((_, itemIndex) => itemIndex !== index),
-                        }))
+                        updateSection<SocialLinkDraft[]>(sectionKey, (current) =>
+                          current.filter((_, itemIndex) => itemIndex !== index)
+                        )
                       }
                     >
                       <Trash2 size={14} />
@@ -1310,14 +1332,14 @@ export function AdminDashboard({
                 type="button"
                 className="ghost-button"
                 onClick={() =>
-                  updateSection<SiteDraft>(sectionKey, (current) => ({
+                  updateSection<SocialLinkDraft[]>(sectionKey, (current) => [
                     ...current,
-                    socialLinks: [...current.socialLinks, { label: "", iconName: "facebook", url: "" }],
-                  }))
+                    { label: "", iconName: "facebook", url: "", description: "" },
+                  ])
                 }
               >
                 <Plus size={14} />
-                Add social link
+                Add social platform
               </button>
             </div>
           </SectionCard>

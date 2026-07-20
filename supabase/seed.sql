@@ -8,7 +8,6 @@ values
     "phone": "+254 708 218 368",
     "email": "support@eliteforexfund.com",
     "location": "Nairobi, Kenya",
-    "socialLinks": [],
     "footerBlurb": "Professional Forex Account Management for serious investors.",
     "disclaimer": "Forex trading involves significant risk and may not be suitable for all investors. Past performance is not indicative of future results."
   }'::jsonb),
@@ -21,6 +20,7 @@ values
     { "label": "FAQ", "href": "/faq" },
     { "label": "Contact", "href": "/contact" }
   ]'::jsonb),
+  ('socials', '[]'::jsonb),
   ('hero', '{
     "eyebrow": "Elite Forex Fund",
     "title": "Professional Forex\nAccount Management",

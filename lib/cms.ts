@@ -28,6 +28,8 @@ import type {
   PerformancePageContent,
   ServicesPageContent,
   SiteChrome,
+  SocialIconName,
+  SocialLink,
 } from "@/lib/cms-types";
 import { PERFORMANCE_GALLERY_KEY, normalizePerformanceGallery } from "@/lib/performance-gallery";
 
@@ -315,6 +317,44 @@ function toMap(rows: DynamicCmsSection[]) {
   return new Map(rows.map((row) => [row.section_key, row.payload]));
 }
 
+const socialIconNames = new Set<SocialIconName>([
+  "facebook",
+  "instagram",
+  "linkedin",
+  "youtube",
+  "twitter",
+  "telegram",
+  "tiktok",
+  "website",
+]);
+
+function normalizeSocialLinks(value: unknown): SocialLink[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+
+    const entry = item as Record<string, unknown>;
+    const iconName = typeof entry.iconName === "string" && socialIconNames.has(entry.iconName as SocialIconName)
+      ? (entry.iconName as SocialIconName)
+      : "website";
+    const label = typeof entry.label === "string" ? entry.label.trim() : "";
+    const url = typeof entry.url === "string" ? entry.url.trim() : "";
+    const description = typeof entry.description === "string" ? entry.description.trim() : "";
+
+    return label && url ? [{ label, iconName, url, description }] : [];
+  });
+}
+
+function ensurePerformanceNavigation(navLinks: SiteChrome["navLinks"]) {
+  if (navLinks.some((item) => item.href === "/performance")) return navLinks;
+
+  const nextLinks = [...navLinks];
+  const insertAt = nextLinks.findIndex((item) => item.href === "/faq" || item.href === "/contact");
+  nextLinks.splice(insertAt >= 0 ? insertAt : nextLinks.length, 0, { label: "Performance", href: "/performance" });
+  return nextLinks;
+}
+
 function resolveIcon(name: IconName | undefined) {
   if (!name) return undefined;
   return iconResolver[name] ?? ShieldCheck;
@@ -325,10 +365,11 @@ export function formatYearsInOperation(startYear: number) {
 }
 
 export async function getChromeContent(): Promise<SiteChrome> {
-  const rows = await fetchSections(["site", "navigation"]);
+  const rows = await fetchSections(["site", "navigation", "socials"]);
   const map = toMap(rows);
   const rawSite = (map.get("site") ?? {}) as Partial<SiteChrome>;
-  const navLinks = (map.get("navigation") ?? fallbackChrome.navLinks) as SiteChrome["navLinks"];
+  const storedNavLinks = (map.get("navigation") ?? fallbackChrome.navLinks) as SiteChrome["navLinks"];
+  const socialLinks = normalizeSocialLinks(map.get("socials") ?? rawSite.socialLinks);
 
   return {
     ...fallbackChrome,
@@ -336,8 +377,8 @@ export async function getChromeContent(): Promise<SiteChrome> {
     brandName: rawSite.brandName ?? rawSite.siteName,
     siteName: rawSite.siteName ?? rawSite.brandName ?? fallbackChrome.siteName,
     copyrightName: rawSite.copyrightName || rawSite.brandName || rawSite.siteName || fallbackChrome.copyrightName,
-    navLinks,
-    socialLinks: Array.isArray(rawSite.socialLinks) ? rawSite.socialLinks : fallbackChrome.socialLinks,
+    navLinks: ensurePerformanceNavigation(storedNavLinks),
+    socialLinks,
   };
 }
 

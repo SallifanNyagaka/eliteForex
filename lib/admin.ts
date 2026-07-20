@@ -1,6 +1,7 @@
 export const ADMIN_SECTIONS = [
   "site",
   "navigation",
+  "socials",
   "hero",
   "stats",
   "plans",

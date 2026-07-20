@@ -5,6 +5,7 @@ import { SiteShell } from "@/components/site-shell";
 import { SectionHeading } from "@/components/section-heading";
 import { LeadCaptureForm } from "@/components/forms/lead-capture-form";
 import { PlaceholderMedia } from "@/components/placeholder-media";
+import { SocialIcon } from "@/components/social-icon";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -38,6 +39,10 @@ export default async function ContactPage() {
           asset={content.hero.media}
           label="Contact hero image"
           note="Upload an office or map visual in the admin panel."
+          actions={[
+            { label: "Send an Inquiry", href: "#contact-form" },
+            { label: "View Performance", href: "/performance" },
+          ]}
         />
       </section>
 
@@ -64,6 +69,32 @@ export default async function ContactPage() {
               );
             })}
           </div>
+
+          {chrome.socialLinks.length ? (
+            <div className="contact-social-section">
+              <h3>Connect with us</h3>
+              <div className="contact-social-links">
+                {chrome.socialLinks.map((social) => (
+                  <a
+                    key={`${social.iconName}-${social.url}`}
+                    className="contact-social-link"
+                    href={social.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={social.description || social.label}
+                  >
+                    <span className="contact-social-icon">
+                      <SocialIcon name={social.iconName} size={20} />
+                    </span>
+                    <span>
+                      <strong>{social.label}</strong>
+                      {social.description ? <small>{social.description}</small> : null}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="contact-card">

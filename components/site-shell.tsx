@@ -111,8 +111,8 @@ export function SiteShell({ chrome, children }: { chrome: SiteChrome; children: 
                         href={social.url}
                         target="_blank"
                         rel="noreferrer"
-                        aria-label={social.label || social.iconName}
-                        title={social.label || social.iconName}
+                        aria-label={social.description || social.label || social.iconName}
+                        title={social.description || social.label || social.iconName}
                       >
                         <SocialIcon name={social.iconName} />
                       </a>

@@ -41,6 +41,12 @@ export type SocialLink = {
   label: string;
   iconName: SocialIconName;
   url: string;
+  description: string;
+};
+
+export type MediaAction = {
+  label: string;
+  href: string;
 };
 
 export type MediaPlaceholder = {

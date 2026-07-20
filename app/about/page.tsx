@@ -38,6 +38,10 @@ export default async function AboutPage() {
           asset={content.hero.media}
           label="About page image"
           note="Upload a brand or office image from the admin panel."
+          actions={[
+            { label: "Contact Us", href: "/contact" },
+            { label: "View Performance", href: "/performance" },
+          ]}
         />
       </section>
 
