@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { processEmailQueue } from "@/lib/email-queue";
 import { leadSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -51,6 +52,14 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+
+  after(async () => {
+    try {
+      await processEmailQueue(10);
+    } catch (queueError) {
+      console.error("Email queue processing failed after form submission.", queueError);
+    }
+  });
 
   return NextResponse.json({ ok: true });
 }
