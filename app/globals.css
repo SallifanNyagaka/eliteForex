@@ -123,6 +123,12 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
+.placeholder-media {
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+}
+
 .hero-media-cta {
   display: inline-flex;
   min-height: 42px;
