@@ -1,6 +1,20 @@
 -- Additive migration for durable form-submission email delivery.
 -- Run this file once in the Supabase SQL editor. It is safe to rerun.
 
+-- Older projects may already have the applications table, so CREATE TABLE IF
+-- NOT EXISTS in schema.sql cannot add fields introduced by later form versions.
+alter table public.applications
+  add column if not exists lead_type text not null default 'contact';
+
+alter table public.applications
+  add column if not exists package_name text;
+
+alter table public.applications
+  add column if not exists investment_budget text;
+
+alter table public.applications
+  add column if not exists source_page text;
+
 create table if not exists public.email_jobs (
   id bigserial primary key,
   application_id bigint not null references public.applications(id) on delete cascade,

@@ -7,7 +7,7 @@ The application saves each form submission first, then processes the two queued 
 
 ## Setup
 
-1. Run `supabase/seed_email_queue.sql` in the Supabase SQL editor.
+1. Run `supabase/seed_email_queue.sql` in the Supabase SQL editor. This also adds any form-submission columns missing from older `applications` tables.
 2. Create a free Resend account and API key.
 3. Add the following variables to `.env.local` and to the production deployment environment:
 
