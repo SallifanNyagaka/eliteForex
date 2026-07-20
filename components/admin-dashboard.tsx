@@ -5,11 +5,16 @@ import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowDown,
-  ArrowRight,
   ArrowUp,
+  ChevronLeft,
+  ChevronRight,
+  Inbox,
+  LayoutDashboard,
   Menu,
+  Mail,
   Loader2,
   LogOut,
+  Phone,
   Plus,
   RefreshCcw,
   Save,
@@ -32,6 +37,7 @@ type ContentRow = {
 
 type ApplicationRow = {
   id: number;
+  lead_type: string;
   full_name: string;
   email: string;
   whatsapp_number: string;
@@ -39,10 +45,22 @@ type ApplicationRow = {
   broker: string | null;
   account_size: string;
   message: string;
+  package_name: string | null;
+  investment_budget: string | null;
+  source_page: string | null;
   preferred_contact_method: string;
   preferred_contact_detail: string | null;
   confirmed_over_18: boolean;
   created_at: string;
+};
+
+type AdminView = "overview" | "responses" | "editor";
+
+type ResponsesPagination = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
 };
 
 type DraftState = Partial<Record<AdminSectionKey, unknown>>;
@@ -942,10 +960,6 @@ function SectionDivider({ title }: { title: string }) {
   return <h3 className="section-divider">{title}</h3>;
 }
 
-function scrollToAdminTarget(id: string, block: ScrollLogicalPosition = "start") {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block });
-}
-
 function buildMailtoHref(email: string) {
   return `mailto:${email}`;
 }
@@ -955,16 +969,14 @@ function buildTelHref(phone: string) {
 }
 
 function OverviewCard({
-  applications,
-  showAllEmails,
-  onToggleAllEmails,
+  latestApplication,
+  applicationsCount,
+  onViewResponses,
 }: {
-  applications: ApplicationRow[];
-  showAllEmails: boolean;
-  onToggleAllEmails: () => void;
+  latestApplication: ApplicationRow | null;
+  applicationsCount: number;
+  onViewResponses: () => void;
 }) {
-  const latestLead = applications[0];
-
   return (
     <article className="admin-card admin-overview-card" id="overview">
       <div className="admin-card-head">
@@ -979,81 +991,177 @@ function OverviewCard({
       <div className="overview-stats">
         <div className="overview-stat">
           <span>Total submissions</span>
-          <strong>{applications.length}</strong>
+          <strong>{applicationsCount}</strong>
         </div>
         <div className="overview-stat">
           <span>Latest lead</span>
-          <strong>{latestLead ? latestLead.full_name : "None yet"}</strong>
+          <strong>{latestApplication ? latestApplication.full_name : "None yet"}</strong>
         </div>
       </div>
 
       <div className="application-list overview-list">
-        {applications.length ? (
-          applications.slice(0, 1).map((item) => (
-            <div key={item.id} className="application-item">
-              <div className="application-top">
-                <strong>{item.full_name}</strong>
-                <span>{new Date(item.created_at).toLocaleString()}</span>
-              </div>
-              <a className="application-link" href={buildMailtoHref(item.email)}>
-                {item.email}
-              </a>
-              <a className="application-link" href={buildTelHref(item.whatsapp_number)}>
-                {item.whatsapp_number}
-              </a>
-              <p>{item.country}</p>
-              <p>{item.account_size}</p>
-              {item.broker ? <p>Broker: {item.broker}</p> : null}
-              <p>
-                Preferred contact: {(item.preferred_contact_method || "whatsapp").replace(/^./, (letter) => letter.toUpperCase())}
-                {item.preferred_contact_detail ? ` (${item.preferred_contact_detail})` : ""}
-              </p>
-              <p>Age confirmation: {item.confirmed_over_18 ? "18+ confirmed" : "Not confirmed"}</p>
-              <p className="application-message">{item.message}</p>
+        {latestApplication ? (
+          <div className="application-item">
+            <div className="application-top">
+              <strong>{latestApplication.full_name}</strong>
+              <span>{new Date(latestApplication.created_at).toLocaleString()}</span>
             </div>
-          ))
+            <a className="application-link" href={buildMailtoHref(latestApplication.email)}>
+              {latestApplication.email}
+            </a>
+            <p className="application-message">{latestApplication.message}</p>
+          </div>
         ) : (
           <p className="empty-state">No applications yet.</p>
         )}
       </div>
 
       <div className="overview-actions">
-        <button type="button" className="ghost-button" onClick={onToggleAllEmails} disabled={!applications.length}>
-          {showAllEmails ? "Hide all emails" : "View all emails"}
+        <button type="button" className="ghost-button" onClick={onViewResponses} disabled={!applicationsCount}>
+          <Inbox size={15} />
+          View all responses
         </button>
       </div>
     </article>
   );
 }
 
-function EmailListCard({ applications }: { applications: ApplicationRow[] }) {
+function ResponseDetail({ response, onBack }: { response: ApplicationRow; onBack: () => void }) {
+  const preferredMethod = (response.preferred_contact_method || "whatsapp")
+    .replaceAll("_", " ")
+    .replace(/^./, (letter) => letter.toUpperCase());
+
   return (
-    <article className="admin-card admin-emails-card" id="all-emails">
-      <div className="admin-card-head">
+    <article className="response-detail-card">
+      <button type="button" className="ghost-button response-detail-back" onClick={onBack}>
+        <ChevronLeft size={16} />
+        Back to responses
+      </button>
+
+      <div className="response-detail-head">
         <div>
-          <p className="eyebrow">Email list</p>
-          <h2>All submitted emails</h2>
-          <p className="admin-copy">Click any email to open a new message in your mail app.</p>
+          <p className="eyebrow">Submitted response</p>
+          <h2>{response.full_name}</h2>
+          <p className="admin-copy">Received {new Date(response.created_at).toLocaleString()}</p>
         </div>
-        <ArrowRight size={18} />
+        <div className="response-detail-actions">
+          <a className="ghost-button" href={buildMailtoHref(response.email)}>
+            <Mail size={15} /> Email
+          </a>
+          <a className="ghost-button" href={buildTelHref(response.whatsapp_number)}>
+            <Phone size={15} /> Call
+          </a>
+        </div>
       </div>
 
-      <div className="email-list">
-        {applications.length ? (
-          applications.map((item) => (
-            <div key={item.id} className="email-item">
-              <div>
-                <strong>{item.full_name}</strong>
-                <span>{new Date(item.created_at).toLocaleString()}</span>
-              </div>
-              <a className="application-link" href={buildMailtoHref(item.email)}>
-                {item.email}
-              </a>
+      <dl className="response-detail-grid">
+        <div><dt>Submission type</dt><dd>{response.lead_type || "Contact"}</dd></div>
+        <div><dt>Email</dt><dd><a href={buildMailtoHref(response.email)}>{response.email}</a></dd></div>
+        <div><dt>Phone / WhatsApp</dt><dd><a href={buildTelHref(response.whatsapp_number)}>{response.whatsapp_number}</a></dd></div>
+        <div><dt>Preferred contact</dt><dd>{preferredMethod}{response.preferred_contact_detail ? `: ${response.preferred_contact_detail}` : ""}</dd></div>
+        <div><dt>Country</dt><dd>{response.country || "Not provided"}</dd></div>
+        <div><dt>Broker</dt><dd>{response.broker || "Not provided"}</dd></div>
+        <div><dt>Account size</dt><dd>{response.account_size || "Not provided"}</dd></div>
+        <div><dt>Investment budget</dt><dd>{response.investment_budget || "Not provided"}</dd></div>
+        <div><dt>Package</dt><dd>{response.package_name || "Not selected"}</dd></div>
+        <div><dt>Source page</dt><dd>{response.source_page || "Not provided"}</dd></div>
+        <div><dt>Age confirmation</dt><dd>{response.confirmed_over_18 ? "18+ confirmed" : "Not confirmed"}</dd></div>
+      </dl>
+
+      <div className="response-message-panel">
+        <span>Message</span>
+        <p>{response.message}</p>
+      </div>
+    </article>
+  );
+}
+
+function ResponsesWorkspace({
+  responses,
+  pagination,
+  loading,
+  error,
+  selectedResponse,
+  onSelect,
+  onBack,
+  onPageChange,
+}: {
+  responses: ApplicationRow[];
+  pagination: ResponsesPagination;
+  loading: boolean;
+  error: string;
+  selectedResponse: ApplicationRow | null;
+  onSelect: (response: ApplicationRow) => void;
+  onBack: () => void;
+  onPageChange: (page: number) => void;
+}) {
+  return (
+    <article className="admin-card admin-responses-card">
+      <div className="admin-card-head">
+        <div>
+          <p className="eyebrow">Responses</p>
+          <h2>Submitted forms</h2>
+          <p className="admin-copy">Select a response to see every submitted detail and contact the person directly.</p>
+        </div>
+        <Inbox size={18} />
+      </div>
+
+      {error ? <p className="admin-error">{error}</p> : null}
+
+      <div className={`responses-workspace ${selectedResponse ? "showing-detail" : ""}`}>
+        <section className="responses-list-panel" aria-label="Submitted responses">
+          {loading ? <p className="empty-state">Loading responses...</p> : null}
+          {!loading && !responses.length ? <p className="empty-state">No responses have been submitted yet.</p> : null}
+
+          {!loading ? responses.map((response) => (
+            <button
+              type="button"
+              key={response.id}
+              className={`response-list-item ${selectedResponse?.id === response.id ? "active" : ""}`}
+              aria-pressed={selectedResponse?.id === response.id}
+              onClick={() => onSelect(response)}
+            >
+              <span className="response-list-head">
+                <strong>{response.full_name}</strong>
+                <small>{new Date(response.created_at).toLocaleDateString()}</small>
+              </span>
+              <span>{response.email}</span>
+              <small className="response-list-preview">{response.message}</small>
+            </button>
+          )) : null}
+
+          <div className="responses-pagination" aria-label="Responses pagination">
+            <button
+              type="button"
+              className="ghost-button"
+              disabled={pagination.page <= 1 || loading}
+              onClick={() => onPageChange(pagination.page - 1)}
+            >
+              <ChevronLeft size={15} /> Previous
+            </button>
+            <span>Page {pagination.page} of {pagination.totalPages}</span>
+            <button
+              type="button"
+              className="ghost-button"
+              disabled={pagination.page >= pagination.totalPages || loading}
+              onClick={() => onPageChange(pagination.page + 1)}
+            >
+              Next <ChevronRight size={15} />
+            </button>
+          </div>
+        </section>
+
+        <section className="responses-detail-panel" aria-live="polite">
+          {selectedResponse ? (
+            <ResponseDetail response={selectedResponse} onBack={onBack} />
+          ) : (
+            <div className="response-detail-empty">
+              <Inbox size={24} />
+              <h3>Select a response</h3>
+              <p>Its complete form details will open here.</p>
             </div>
-          ))
-        ) : (
-          <p className="empty-state">No emails to show yet.</p>
-        )}
+          )}
+        </section>
       </div>
     </article>
   );
@@ -1086,17 +1194,21 @@ function SectionSwitcher({
 
 function AdminSidebar({
   applicationsCount,
+  activeView,
   activeGroup,
   isOpen,
   onClose,
   onViewOverview,
+  onViewResponses,
   onSelectGroup,
 }: {
   applicationsCount: number;
+  activeView: AdminView;
   activeGroup: string;
   isOpen: boolean;
   onClose: () => void;
   onViewOverview: () => void;
+  onViewResponses: () => void;
   onSelectGroup: (groupTitle: string) => void;
 }) {
   return (
@@ -1119,17 +1231,38 @@ function AdminSidebar({
             </button>
           </div>
 
-          <button type="button" className="sidebar-forms-link" onClick={onViewOverview}>
-            <span>Forms received</span>
-            <strong>{applicationsCount}</strong>
-          </button>
+          <div className="sidebar-primary-links">
+            <button
+              type="button"
+              className={`sidebar-primary-link ${activeView === "overview" ? "active" : ""}`}
+              onClick={onViewOverview}
+            >
+              <LayoutDashboard size={17} />
+              <span>
+                <strong>Overview</strong>
+                <small>Summary and latest response</small>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`sidebar-primary-link ${activeView === "responses" ? "active" : ""}`}
+              onClick={onViewResponses}
+            >
+              <Inbox size={17} />
+              <span>
+                <strong>Responses</strong>
+                <small>View all submissions</small>
+              </span>
+              <b>{applicationsCount}</b>
+            </button>
+          </div>
 
           <div className="sidebar-links">
             {sectionGroups.map((group) => (
               <button
                 key={group.title}
                 type="button"
-                className={`sidebar-group-link ${activeGroup === group.title ? "active" : ""}`}
+                className={`sidebar-group-link ${activeView === "editor" && activeGroup === group.title ? "active" : ""}`}
                 onClick={() => onSelectGroup(group.title)}
               >
                 <span>{group.title}</span>
@@ -1154,29 +1287,33 @@ export function AdminDashboard({
 }) {
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey), [supabaseUrl, supabaseAnonKey]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [content, setContent] = useState<ContentRow[]>([]);
   const [applications, setApplications] = useState<ApplicationRow[]>([]);
+  const [applicationsCount, setApplicationsCount] = useState(0);
   const [drafts, setDrafts] = useState<DraftState>({});
+  const [activeView, setActiveView] = useState<AdminView>("overview");
   const [activeGroup, setActiveGroup] = useState(defaultAdminGroup);
   const [panelOpen, setPanelOpen] = useState(false);
   const [activeSectionKey, setActiveSectionKey] = useState<AdminSectionKey | null>(null);
-  const [showAllEmails, setShowAllEmails] = useState(false);
+  const [responses, setResponses] = useState<ApplicationRow[]>([]);
+  const [responsesLoading, setResponsesLoading] = useState(false);
+  const [responsesError, setResponsesError] = useState("");
+  const [responsesPage, setResponsesPage] = useState(1);
+  const [responsesPagination, setResponsesPagination] = useState<ResponsesPagination>({
+    page: 1,
+    pageSize: 25,
+    total: 0,
+    totalPages: 1,
+  });
+  const [selectedResponse, setSelectedResponse] = useState<ApplicationRow | null>(null);
   const activeGroupConfig = useMemo(() => sectionGroups.find((group) => group.title === activeGroup) ?? null, [activeGroup]);
-  const sortedApplications = useMemo(
-    () => [...applications].sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime()),
-    [applications]
-  );
 
   async function loadData() {
-    setLoading(true);
     setError("");
 
     if (!supabase) {
       setError("Public Supabase environment variables are missing.");
-      setLoading(false);
       return;
     }
 
@@ -1196,24 +1333,66 @@ export function AdminDashboard({
 
     if (!response.ok) {
       setError("Unable to load admin data.");
-      setLoading(false);
       return;
     }
 
     const payload = (await response.json()) as {
       content: ContentRow[];
       applications: ApplicationRow[];
+      applicationsCount: number;
     };
 
-    setContent(payload.content);
     setApplications(payload.applications);
+    setApplicationsCount(payload.applicationsCount);
     setDrafts(buildDrafts(payload.content));
-    setLoading(false);
+  }
+
+  async function loadResponses(page: number) {
+    setResponsesLoading(true);
+    setResponsesError("");
+    setSelectedResponse(null);
+
+    try {
+      if (!supabase) throw new Error("Public Supabase environment variables are missing.");
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        router.replace("/admin/login");
+        return;
+      }
+
+      const response = await fetch(`/api/admin/responses?page=${page}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { ok?: boolean; error?: string; responses?: ApplicationRow[]; pagination?: ResponsesPagination }
+        | null;
+
+      if (!response.ok || !payload?.ok || !payload.pagination) {
+        throw new Error(payload?.error || "Unable to load submitted responses.");
+      }
+
+      setResponses(payload.responses ?? []);
+      setResponsesPagination(payload.pagination);
+      setApplicationsCount(payload.pagination.total);
+    } catch (responsesLoadError) {
+      setResponsesError(responsesLoadError instanceof Error ? responsesLoadError.message : "Unable to load submitted responses.");
+    } finally {
+      setResponsesLoading(false);
+    }
   }
 
   useEffect(() => {
     void loadData();
   }, []);
+
+  useEffect(() => {
+    if (activeView === "responses") {
+      void loadResponses(responsesPage);
+    }
+  }, [activeView, responsesPage]);
 
   useEffect(() => {
     if (!sectionGroups.some((group) => group.title === activeGroup)) {
@@ -1241,6 +1420,7 @@ export function AdminDashboard({
   }
 
   function selectGroup(groupTitle: string) {
+    setActiveView("editor");
     setActiveGroup(groupTitle);
     const nextGroup = sectionGroups.find((group) => group.title === groupTitle);
     setActiveSectionKey(nextGroup?.sections[0] ?? null);
@@ -1248,20 +1428,21 @@ export function AdminDashboard({
   }
 
   function viewOverview() {
+    setActiveView("overview");
     setPanelOpen(false);
-    window.setTimeout(() => scrollToAdminTarget("overview"), 0);
   }
 
-  function toggleAllEmails() {
-    setShowAllEmails((current) => {
-      const next = !current;
+  function viewResponses() {
+    setActiveView("responses");
+    setPanelOpen(false);
+  }
 
-      if (next) {
-        window.setTimeout(() => scrollToAdminTarget("all-emails"), 0);
-      }
+  async function refreshDashboard() {
+    await loadData();
 
-      return next;
-    });
+    if (activeView === "responses") {
+      await loadResponses(responsesPage);
+    }
   }
 
   async function saveSection(sectionKey: AdminSectionKey) {
@@ -2948,7 +3129,7 @@ export function AdminDashboard({
             <Menu size={16} />
             Menu
           </button>
-          <button className="secondary-button" type="button" onClick={() => void loadData()}>
+          <button className="secondary-button" type="button" onClick={() => void refreshDashboard()}>
             <RefreshCcw size={16} />
             Refresh
           </button>
@@ -2963,20 +3144,39 @@ export function AdminDashboard({
 
       <section className="admin-grid">
         <AdminSidebar
-          applicationsCount={sortedApplications.length}
+          applicationsCount={applicationsCount}
+          activeView={activeView}
           activeGroup={activeGroup}
           isOpen={panelOpen}
           onClose={() => setPanelOpen(false)}
           onViewOverview={viewOverview}
+          onViewResponses={viewResponses}
           onSelectGroup={selectGroup}
         />
 
         <div className="admin-main-column">
-          <OverviewCard applications={sortedApplications} showAllEmails={showAllEmails} onToggleAllEmails={toggleAllEmails} />
+          {activeView === "overview" ? (
+            <OverviewCard
+              latestApplication={applications[0] ?? null}
+              applicationsCount={applicationsCount}
+              onViewResponses={viewResponses}
+            />
+          ) : null}
 
-          {showAllEmails ? <EmailListCard applications={sortedApplications} /> : null}
+          {activeView === "responses" ? (
+            <ResponsesWorkspace
+              responses={responses}
+              pagination={responsesPagination}
+              loading={responsesLoading}
+              error={responsesError}
+              selectedResponse={selectedResponse}
+              onSelect={setSelectedResponse}
+              onBack={() => setSelectedResponse(null)}
+              onPageChange={setResponsesPage}
+            />
+          ) : null}
 
-          {activeGroupConfig ? (
+          {activeView === "editor" && activeGroupConfig ? (
             <article className="admin-card admin-content-column">
               <div className="admin-card-head">
                 <div>
@@ -3001,18 +3201,7 @@ export function AdminDashboard({
                 <p className="empty-state">Select a section to start editing.</p>
               )}
             </article>
-          ) : (
-            <article className="admin-card admin-content-column">
-              <div className="admin-card-head">
-                <div>
-                  <p className="eyebrow">Overview</p>
-                  <h2>Choose a page to edit</h2>
-                </div>
-                <ShieldCheck size={18} />
-              </div>
-              <p className="admin-copy">Open the side panel and pick a page to load its editors here.</p>
-            </article>
-          )}
+          ) : null}
         </div>
       </section>
     </main>

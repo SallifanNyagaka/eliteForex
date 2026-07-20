@@ -22,9 +22,9 @@ export async function GET(request: Request) {
     supabase.from("site_content").select("section_key, payload").order("section_key", { ascending: true }),
     supabase
       .from("applications")
-      .select("id, full_name, email, whatsapp_number, country, broker, account_size, message, preferred_contact_method, preferred_contact_detail, confirmed_over_18, created_at")
+      .select("id, lead_type, full_name, email, whatsapp_number, country, broker, account_size, message, package_name, investment_budget, source_page, preferred_contact_method, preferred_contact_detail, confirmed_over_18, created_at", { count: "exact" })
       .order("created_at", { ascending: false })
-      .limit(25),
+      .limit(1),
   ]);
 
   if (contentResult.error || applicationsResult.error) {
@@ -34,6 +34,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     content: contentResult.data ?? [],
     applications: applicationsResult.data ?? [],
+    applicationsCount: applicationsResult.count ?? 0,
   });
 }
 
